@@ -8,7 +8,7 @@ A web app for tracking expenses
 
 * [x] Create basic structure
 * [] Add database. To be ready for ...
-* [] REST API Account creation
+* [x] REST API Account creation
 * [x] REST API Auth
 * [] REST API Create
 * [] REST API Read / fetches seven days from a start date (incl.)

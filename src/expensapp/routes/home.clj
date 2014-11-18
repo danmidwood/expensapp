@@ -12,8 +12,7 @@
             [ring.middleware.nested-params :refer :all]
             [ring.middleware.params :refer :all]))
 
-(def users (atom {"dan" {:username "dan"
-                         :password (creds/hash-bcrypt "dan")}}))
+(def users (atom {}))
 
 (defn authenticate-user [{username "user" password "password"}]
   (if-let [user-record (@users username)]
@@ -36,15 +35,27 @@
                                           :headers {}
                                           :body    nil})))
 
-(defroutes routes2
+(defroutes app-routes
   (GET "/" req (redirect "/index.html"))
   (GET "/requires-authentication" req
        (friend/authenticated "Thanks for authenticating!")))
 
+(defroutes account-routes
+  (POST "/account" req
+        (if-let [id (friend/current-authentication req)]
+          {:status 400 :body "Already logged in"}  ; already logged in as an account
+          (let [account (:body req)
+                username (get account "user")
+                password (get account "password")]
+            (if (@users username)
+              {:status 409 :body (str "Username: " username " is already taken")}
+              (do (swap! users assoc username {:username username :password (creds/hash-bcrypt password)})
+                  {:status 204}))))))
+
 
 (def all-routes
   (-> (ring.middleware.session/wrap-session
-       (friend/authenticate routes2
+       (friend/authenticate (routes app-routes account-routes)
                             {:login-uri "/session"
                              :default-landing-uri "/session"
                              :workflows [auth-routes]}))))
