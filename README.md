@@ -294,6 +294,14 @@ This will create a jar in the target directory named with the format `expensapp-
 
 The current $version is `0.1.0`
 
+
+### Testing
+
+A [Postman][3] collection containing pre-setup requests is included in the root
+of this project. Import it into Postman to try them out.
+
+[3]: http://www.getpostman.com/
+
 ## Change Log
 
 * Version 0.1.0-SNAPSHOT
