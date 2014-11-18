@@ -11,32 +11,40 @@
    [clojure.string :as str]
    [clojure.test :as test]
    [clojure.tools.namespace.repl :refer [refresh refresh-all]]
-   [expensapp.handler]))
+   [ring.server.standalone :refer [serve]]
+   [expensapp.handler :refer [app]]))
 
 (def system
   "A Var containing an object representing the application under
   development."
-  nil)
+  (atom nil))
 
 (defn init
   "Creates and initializes the system under development in the Var
   #'system."
-  []
-  ;; TODO
-  )
+  [])
+
 
 (defn start
   "Starts the system running, updates the Var #'system."
   []
-  ;; TODO
-  )
+  (let [port 3000]
+    (reset! system
+            (serve app
+                   {:port port
+                    :init init
+                    :open-browser? false
+                    :auto-reload? true
+                    :destroy true
+                    :join true}))
+    (println (str "You can view the site at http://localhost:" port))))
 
 (defn stop
   "Stops the system if it is currently running, updates the Var
   #'system."
   []
-  ;; TODO
-  )
+  (.stop @system)
+  (reset! system nil))
 
 (defn go
   "Initializes and starts the system running."
