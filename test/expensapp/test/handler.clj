@@ -11,4 +11,10 @@
              "/index.html"))))
   (testing "not-found route"
     (let [response (app (request :get "/invalid"))]
-      (is (= (:status response) 404)))))
+      (is (= (:status response) 404))))
+  ;; (testing "auth route"
+  ;;   (let [response (app (-> (request :post "/session" "{\"username\": \"dan\",\"password\": \"dan\"}")
+  ;;                           (header "Content-Type" "application/json")
+  ;;                           (assoc-in [:cookie] (str "ring-session" "=" "7a621922-5e2f-4ae7-b0e5-590703d27908"))))]
+  ;;     (is (= (:status response) 301))))
+  )

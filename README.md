@@ -9,7 +9,7 @@ A web app for tracking expenses
 * [x] Create basic structure
 * [] Add database. To be ready for ...
 * [] REST API Account creation
-* [] REST API Auth
+* [x] REST API Auth
 * [] REST API Create
 * [] REST API Read / fetches seven days from a start date (incl.)
 * [] REST API Update
@@ -41,7 +41,7 @@ Media Type: `application/vnd.expensapp.auth+json`
 ```javascript
 {
     user: not-nil,
-    password: not-nil
+    password: optional // client should send, server never will
 }
 ```
 
@@ -120,6 +120,44 @@ The session cookie should be sent with all future requests.
 
 DAN: Do some research first into this. The assumption is that returning a cookie
 will automatically add it to the future requests, but this isn't verified yet.
+###### Credentials invalid
+response status: HTTP 401
+response type: Nothing
+###### Malformed client request
+response status: Anything in the 4xx range
+###### Server error
+response status: Anything in the 5xx range
+
+#### Logout
+
+verb: `DELETE`
+path: `/session`
+request type: Nothing
+
+
+##### Responses
+###### Success
+Success will be sent when the client is logged out, this includes if they were
+not logged in to begin with.
+
+response status: HTTP 204
+response type: Nothing
+###### Malformed client request
+response status: Anything in the 4xx range
+###### Server error
+response status: Anything in the 5xx range
+
+#### Get logged in username
+
+verb: `GET`
+path: `/session`
+request type: Nothing
+
+
+##### Responses
+###### Success
+response status: HTTP 200
+response type: An `Auth` without a password
 ###### Credentials invalid
 response status: HTTP 401
 response type: Nothing
