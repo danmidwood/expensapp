@@ -2,22 +2,19 @@
   (:require [compojure.core :refer :all]
             [ring.util.response :refer [redirect response status content-type]]
             [cemerick.friend :as friend]
-            (cemerick.friend [workflows :as workflows]
-                             [credentials :as creds])
+            (cemerick.friend [workflows :as workflows])
             [cemerick.friend.util :refer [gets]]
             [compojure.handler :as handler]
             [marianoguerra.friend-json-workflow :as json-auth]
             [cheshire.core :as json]
+            [expensapp.users :as u]
             [ring.middleware.keyword-params :refer :all]
             [ring.middleware.nested-params :refer :all]
             [ring.middleware.params :refer :all]))
 
-(def users (atom {}))
-
 (defn authenticate-user [{username "user" password "password"}]
-  (if-let [user-record (@users username)]
-    (if (creds/bcrypt-verify password (:password user-record))
-      (dissoc user-record :password))))
+  (if (u/auths? username password)
+    {:username username}))
 
 (defroutes auth-routes
   (POST "/session" req
@@ -47,10 +44,10 @@
           (let [account (:body req)
                 username (get account "user")
                 password (get account "password")]
-            (if (@users username)
-              {:status 409 :body (str "Username: " username " is already taken")}
-              (do (swap! users assoc username {:username username :password (creds/hash-bcrypt password)})
-                  {:status 204}))))))
+            (if (u/username-available? username)
+              (do (u/add-user username password)
+                  {:status 204})
+              {:status 409 :body (str "Username: " username " is already taken")})))))
 
 
 (def all-routes
