@@ -16,8 +16,9 @@
   :plugins [[lein-ring "0.8.12"]
             [lein-npm "0.4.0"]
             [lein-bower "0.5.1"]]
-  :node-dependencies [[bower "1.3.2"]]
-  :bower-dependencies [[react "0.11.2"]]
+  :node-dependencies [[bower "1.3.8"]]
+  :bower-dependencies [[react "0.11.2"]
+                       [jquery "2.1.1"]]
   :ring {:handler expensapp.handler/app
          :init expensapp.handler/init
          :destroy expensapp.handler/destroy}
