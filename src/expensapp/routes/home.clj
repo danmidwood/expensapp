@@ -53,6 +53,6 @@
 (def all-routes
   (-> (ring.middleware.session/wrap-session
        (friend/authenticate (routes app-routes account-routes)
-                            {:login-uri "/session"
+                            {:login-uri "/"
                              :default-landing-uri "/session"
                              :workflows [auth-routes]}))))
