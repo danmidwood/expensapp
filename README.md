@@ -7,7 +7,7 @@ A web app for tracking expenses
 #### Back end
 
 * [x] Create basic structure
-* [] Add database. To be ready for ...
+* [x] Add database
 * [x] REST API Account creation
 * [x] REST API Auth
 * [] REST API Create
@@ -278,7 +278,27 @@ And the latest [node][2] for web dependencies (via npm)
 [1]: https://github.com/technomancy/leiningen
 [2]: http://nodejs.org/download/
 
+### Setting up the database
+
+To set up the database, run the scripts in the `./sql_migrations` folder.
+
+The script `builddb.sh` will run all of them automatically.
+
+```sh
+cd sql_migrations
+./builddb.sh
+```
+
 ### Starting
+
+Before running the database credentials need to be put into environment
+variables, those that need to be populated are:
+
+* EXPENSAPP_DBHOST
+* EXPENSAPP_DBPORT
+* EXPENSAPP_DBNAME
+* EXPENSAPP_DBUSER
+* EXPENSAPP_DBPASS
 
 To start a web server for the application, run:
 

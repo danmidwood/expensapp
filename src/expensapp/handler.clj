@@ -6,8 +6,18 @@
             [compojure.handler :as handler]
             [ring.middleware.json :refer [wrap-json-body wrap-json-response]]
             [compojure.route :as route]
-            [expensapp.routes.home :refer [all-routes]]
-            [taoensso.timbre :as timbre]))
+            [expensapp.routes.home :refer [make-all-routes]]
+            [taoensso.timbre :as timbre]
+            [environ.core :refer [env]]))
+
+(def db {:classname "org.postgresql.Driver"
+         :subprotocol "postgresql"
+         :subname (format "//%s:%s/%s"
+                          (env :expensapp-dbhost)
+                          (env :expensapp-dbport)
+                          (env :expensapp-dbname))
+         :user (env :expensapp-dbuser)
+         :password (env :expensapp-dbpass)})
 
 (defn init []
   (timbre/info "expensapp is starting"))
@@ -20,7 +30,7 @@
   (route/not-found "Not Found"))
 
 (def app
-  (-> (routes all-routes app-routes)
+  (-> (routes (make-all-routes db) app-routes)
       (handler/site)
       (wrap-base-url)
       (wrap-json-body)

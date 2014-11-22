@@ -1,15 +1,27 @@
 (ns expensapp.users
-  (:require (cemerick.friend [credentials :as creds])))
+  (:require (cemerick.friend [credentials :as creds])
 
-(def users (atom {}))
+            [taoensso.timbre :as timbre]
+            [yesql.core :refer [defqueries]]))
 
-(defn username-available? [username]
-  (not (get @users username)))
+(defqueries "expensapp/sql/users.sql"
+;; -username-available?
+;; -get-user
+;; -add-user
+)
 
-(defn auths? [username password]
-  (if-let [user-record (@users username)]
-    (if (creds/bcrypt-verify password (:password user-record))
-      (dissoc user-record :password))))
+(defn username-available? [db username]
+  (-> (-username-available? db username)
+      first
+      :exists
+      not))
 
-(defn add-user [username password]
-  (swap! users assoc username {:username username :password (creds/hash-bcrypt password)}))
+(defn auths? [db username password]
+  (when-first [user-record (-get-user db username)]
+    (if (creds/bcrypt-verify password (:pass user-record))
+      {:id (:id user-record)
+       :username (:name user-record)})))
+
+(defn add-user [db username password]
+  (-add-user! db (java.util.UUID/randomUUID)
+              username (creds/hash-bcrypt password)))
