@@ -294,6 +294,7 @@ cd sql_migrations
 Before running the database credentials need to be put into environment
 variables, those that need to be populated are:
 
+* EXPENSAPP_HTTP_PORT
 * EXPENSAPP_DBHOST
 * EXPENSAPP_DBPORT
 * EXPENSAPP_DBNAME
@@ -302,17 +303,40 @@ variables, those that need to be populated are:
 
 To start a web server for the application, run:
 
-    lein ring server
+    lein run
 
 ### Building
 
 To build an executable jar, run:
 
-    lein ring uberjar
+    lein uberjar
 
 This will create a jar in the target directory named with the format `expensapp-$version-SNAPSHOT-standalone.jar`
 
+And this can be run with
+
+    java -jar target/expensapp-$version-SNAPSHOT-standalone.jar
+
 The current $version is `0.1.0`
+
+
+### Publishing
+
+The application can be published to S3 in two ways, as a maven artifact (w/ pom)
+or as a runnable uber .jar file.
+
+Both require your s3 credentials, to publish through `deploy` they should be in
+a ~/.lein/credentials.clj.gpg file, for publishing as an uberjar the s3
+credentials should be available as environment variables named `LEIN_USERNAME`
+and `LEIN_PASSWORD`.
+
+To publish an application snapshot as a Maven artefact run:
+
+    lein deploy
+
+To publish the full application as an uberjar:
+
+    LEIN_USERNAME=username LEIN_PASSWORD=password lein deploy-app
 
 
 ### Testing
