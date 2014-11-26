@@ -50,10 +50,10 @@
                    {:status 204})
                {:status 409 :body (str "Username: " username " is already taken")}))))))
 
-
 (defn make-all-routes [db]
   (-> (ring.middleware.session/wrap-session
        (friend/authenticate (routes app-routes (make-account-routes db))
                             {:login-uri "/"
                              :default-landing-uri "/session"
-                             :workflows [(make-auth-routes db)]}))))
+                             :workflows [(make-auth-routes db)]
+                             :unauthenticated-handler (fn [req] {:status 401})}))))
