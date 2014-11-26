@@ -1,5 +1,7 @@
 (defproject expensapp "0.1.0-SNAPSHOT"
   :description "Expensapp: An expense tracking web app"
+  :url "http://github.com/danmidwood/expensapp"
+  :license "MIT License"
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [org.clojure/java.jdbc "0.3.6"]
                  [postgresql "9.1-901-1.jdbc4"]
@@ -50,4 +52,9 @@
                   ["change" "version" "leiningen.release/bump-version"]
                   ["vcs" "commit"]
                   ["vcs" "push"]]
-  :min-lein-version "2.3.4")
+  :min-lein-version "2.3.4"
+  :scm {:url "git@github.com:danmidwood/expensapp.git"}
+  :pom-addition [:developers [:developer
+                              [:name "Daniel Midwood"]
+                              [:url "http://danmidwood.com"]
+                              [:email "dan@danmidwood.com"]]])

@@ -334,9 +334,27 @@ To publish an application snapshot as a Maven artefact run:
 
     lein deploy
 
+> On OSX I often experience problems with reading the gpg encrypted credentials
+> at this point. The best solution I've found it to run these commands before
+> deploying
+> ```shell
+> eval $(gpg-agent --daemon --enable-ssh-support)
+> gpg --quiet --batch --decrypt ~/.lein/credentials.clj.gpg
+> # then enter password
+> gpg --quiet --batch --decrypt ~/.lein/credentials.clj.gpg
+> # and confirm that no password entry is required
+> ```
+
+
 To publish the full application as an uberjar:
 
     LEIN_USERNAME=username LEIN_PASSWORD=password lein deploy-app
+
+And to release and do both:
+
+    LEIN_USERNAME=username LEIN_PASSWORD=password lein release
+
+
 
 
 ### Testing
