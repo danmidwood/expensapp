@@ -1,4 +1,4 @@
-(defproject expensapp "0.1.0"
+(defproject expensapp "0.1.1-SNAPSHOT"
   :description "Expensapp: An expense tracking web app"
   :url "http://github.com/danmidwood/expensapp"
   :license "MIT License"
