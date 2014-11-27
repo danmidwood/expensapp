@@ -1,6 +1,8 @@
 # Expensapp
 
-A web app for tracking expenses
+A web app for tracking expenses.
+
+![Login screen](/doc/login_screen.png "Login screen")
 
 ## Roadmap
 
@@ -20,7 +22,7 @@ A web app for tracking expenses
 * [x] Add first page, + load css and js
 * [x] Add Account creation
 * [x] Add Login
-* [ ] Add login/join page design
+* [x] Add login/join page design
 * [ ] Create "expenses" view
 * [ ] Add new expense
 * [ ] Display expenses for current week
@@ -380,3 +382,7 @@ of this project. Import it into Postman to try them out.
 ## Copyright and License
 
 Copyright © 2014 Daniel Midwood
+
+Licensed under the MIT License, barring clock-bg.jpg that is licensed under CC0 by [Grasisography][4]
+
+[4] http://www.gratisography.com/

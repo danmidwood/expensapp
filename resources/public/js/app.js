@@ -2,28 +2,30 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
 
   var LoginPage  = React.createClass({
     displayName: 'Login',
-    getInitialState: function() {return {username: '', password: '', message: undefined, joining: false};},
+    getInitialState: function() {return {username: '', password: '', message: undefined, joining: false, loading: false};},
     loginSuccess: function(username) {
-      this.setState({message:undefined});
+      this.setState({loading:false, message:undefined});
       this.props.signalLoggedIn(username);
     },
     invalidCredentials: function() {
+      this.setState({loading:false});
       this.setState({message: 'Credentials invalid'});
     },
     doLogin: function(e) {
-      this.setState({message:"Logging in"});
+      this.setState({loading:true, message:"Logging in"});
       Login.login(this.state.username, this.state.password, this.loginSuccess, this.invalidCredentials);
       return false;
     },
     joinedSuccess: function(username, password) {
+      this.setState({loading:false});
       console.log("Account created, now loggin in");
       this.doLogin();
     },
     errorJoining: function() {
-      this.setState({message: 'An error occured'});
+      this.setState({loading:false, message: 'An error occured'});
     },
     doJoin: function(e) {
-      this.setState({message:"Joining"});
+      this.setState({loading:true, message:"Joining"});
       Login.join(this.state.username, this.state.password, this.joinedSuccess, this.errorJoining);
       return false;
     },
@@ -35,15 +37,19 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
     },
     render: function() {
       return (React.DOM.div({},
-                            React.DOM.form({className: "login_form", onSubmit: (this.state.joining ? this.doJoin : this.doLogin)},
-                                           React.DOM.input({id: "username",
-                                                            value: this.state.username,
-                                                            onChange: this.handleUsernameChanged}),
-                                           React.DOM.input({id: "password",
-                                                            type: 'password',
-                                                            value: this.state.password,
-                                                            onChange: this.handlePasswordChanged}),
-                                           React.DOM.button({id: "login"}, (this.state.joining ? "Join" : "Log in"))),
+                            React.DOM.form({className: "login_form ui input form" + (this.state.loading ? " loading" : ""), onSubmit: (this.state.joining ? this.doJoin : this.doLogin)},
+                                           React.DOM.div({className: "ui labeled field input"},
+                                                         React.DOM.div({className:"ui label"},"Username"),
+                                                         React.DOM.input({id: "username",
+                                                                          value: this.state.username,
+                                                                          onChange: this.handleUsernameChanged})),
+                                           React.DOM.div({className: "ui labeled field input"},
+                                                         React.DOM.div({className:"ui label"},"Password"),
+                                                         React.DOM.input({id: "password",
+                                                                          type: 'password',
+                                                                          value: this.state.password,
+                                                                          onChange: this.handlePasswordChanged})),
+                                           React.DOM.button({id: "login", className: "ui primary button right floated"}, (this.state.joining ? "Join" : "Log in"))),
                             React.DOM.p({className:'message'}, this.state.message),
                             React.DOM.a({className:'info', href:"#", onClick:function() {
                               this.setState({joining: !this.state.joining});

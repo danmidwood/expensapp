@@ -23,7 +23,8 @@
             [rplevy/lein-deploy-app "0.2.1"]]
   :node-dependencies [[bower "1.3.8"]]
   :bower-dependencies [[react "0.11.2"]
-                       [jquery "2.1.1"]]
+                       [jquery "2.1.1"]
+                       [semantic-ui "1.0"]]
   :bower {:directory "resources/public/js/lib"}
   :prep-tasks ["javac" "compile" ["npm" "install"] ["bower" "install"]]
   :profiles
