@@ -11,24 +11,24 @@ A web app for tracking expenses
 * [x] REST API Account creation
 * [x] REST API Auth
 * [x] REST API Create
-* [] REST API Read / fetches seven days from a start date (incl.)
-* [] REST API Update
-* [] REST API Delete
+* [ ] REST API Read / fetches seven days from a start date (incl.)
+* [ ] REST API Update
+* [ ] REST API Delete
 
 #### Front end
 
 * [x] Add first page, + load css and js
-* [] Add Account creation
+* [ ] Add Account creation
 * [x] Add Login
-* [] Create "expenses" view
-* [] Add new expense
-* [] Display expenses for current week
-* * [] Add average display
-* * [] Add total display
-* [] Allow the selected week to be changed
-* [] Delete expense
-* [] Update an expense
-* [] Make display print nicely
+* [ ] Create "expenses" view
+* [ ] Add new expense
+* [ ] Display expenses for current week
+* * [ ] Add average display
+* * [ ] Add total display
+* [ ] Allow the selected week to be changed
+* [ ] Delete expense
+* [ ] Update an expense
+* [ ] Make display print nicely
 
 ## API
 
