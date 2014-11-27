@@ -2,15 +2,29 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
 
   var LoginPage  = React.createClass({
     displayName: 'Login',
-    getInitialState: function() {return {username: '', password: '', error: undefined};},
+    getInitialState: function() {return {username: '', password: '', message: undefined, joining: false};},
     loginSuccess: function(username) {
+      this.setState({message:undefined});
       this.props.signalLoggedIn(username);
     },
     invalidCredentials: function() {
-      this.setState({error: 'Credentials invalid'});
+      this.setState({message: 'Credentials invalid'});
     },
     doLogin: function(e) {
+      this.setState({message:"Logging in"});
       Login.login(this.state.username, this.state.password, this.loginSuccess, this.invalidCredentials);
+      return false;
+    },
+    joinedSuccess: function(username, password) {
+      console.log("Account created, now loggin in");
+      this.doLogin();
+    },
+    errorJoining: function() {
+      this.setState({message: 'An error occured'});
+    },
+    doJoin: function(e) {
+      this.setState({message:"Joining"});
+      Login.join(this.state.username, this.state.password, this.joinedSuccess, this.errorJoining);
       return false;
     },
     handleUsernameChanged: function(e) { // TODO: Is there a way to auto bind these?
@@ -21,7 +35,7 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
     },
     render: function() {
       return (React.DOM.div({},
-                            React.DOM.form({className: "login_form", onSubmit: this.doLogin},
+                            React.DOM.form({className: "login_form", onSubmit: (this.state.joining ? this.doJoin : this.doLogin)},
                                            React.DOM.input({id: "username",
                                                             value: this.state.username,
                                                             onChange: this.handleUsernameChanged}),
@@ -29,10 +43,16 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
                                                             type: 'password',
                                                             value: this.state.password,
                                                             onChange: this.handlePasswordChanged}),
-                                           React.DOM.button({id: "login"}, "Log in")),
-                            React.DOM.p({className:'error'}, this.state.error)));
+                                           React.DOM.button({id: "login"}, (this.state.joining ? "Join" : "Log in"))),
+                            React.DOM.p({className:'message'}, this.state.message),
+                            React.DOM.a({className:'info', href:"#", onClick:function() {
+                              this.setState({joining: !this.state.joining});
+                              return false;
+                            }.bind(this)}, (this.state.joining ? "Already a member? Click here to log in." : "New to Expensapp? Click here to join."))));
     }
   });
+
+
 
 
   var ExpensesPage = React.createClass({

@@ -18,8 +18,9 @@ A web app for tracking expenses
 #### Front end
 
 * [x] Add first page, + load css and js
-* [ ] Add Account creation
+* [x] Add Account creation
 * [x] Add Login
+* [ ] Add login/join page design
 * [ ] Create "expenses" view
 * [ ] Add new expense
 * [ ] Display expenses for current week
