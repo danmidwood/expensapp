@@ -12,7 +12,7 @@ A web app for tracking expenses
 * [x] REST API Auth
 * [x] REST API Create
 * [x] REST API Read / fetches seven days from a start date (incl.)
-* [ ] REST API Update
+* [x] REST API Update
 * [x] REST API Delete
 
 #### Front end

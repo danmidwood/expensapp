@@ -78,7 +78,14 @@
          (let [user-id (:id (friend/current-authentication req))
                uuid (java.util.UUID/fromString id)]
            (e/delete-expense! db user-id uuid)
-           {:status 204})))))
+           {:status 204})))
+   (PUT "/expense/:id" [id :as req]
+        (friend/authenticated
+         (let [user-id (:id (friend/current-authentication req))
+               expense-id (java.util.UUID/fromString id)
+               {:strs [datetime amount comment description]} (:body req)]
+           (when (e/update-expense! db user-id expense-id datetime amount comment description)
+             {:status 204}))))))
 
 (defn make-all-routes [db]
   (-> (ring.middleware.session/wrap-session

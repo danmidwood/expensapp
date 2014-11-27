@@ -16,3 +16,13 @@ datetime < (:start::timestamp + (INTERVAL '7 days'));
 DELETE FROM expense
 where user_id = :user
 and id = :id
+
+-- name: -update-expense!
+-- Update an existing expense record
+update expense
+set datetime = :datetime,
+amount = :amount,
+comment = :comment,
+description = :description
+where user_id = :user
+and id = :id
