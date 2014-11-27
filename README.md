@@ -53,7 +53,7 @@ Media Type: `application/vnd.expensapp.expense+json`
 {
     datetime: not-nil,
     description: not-nil,
-    amount: not-nil,
+    amount: not-nil, // between range -9999.99 to 9999.99
     comment:not-nil,
     location: optional // will be set by the server, not required on POSTs
 }
@@ -266,7 +266,7 @@ With constraints
 * `id` is a UUID and is the primary key
 * `user_id` is a UUID and a foreign key of the user table's id
 * `datetime` is without timezone
-* `amount` is a postgres money type
+* `amount` is a a numeric with precision 6 and scale 2 (i.e. maxes out at 9999.99)
 * `description` and `comment` will both be varchars, limit 100
 
 

@@ -7,7 +7,7 @@ CREATE TABLE expense
   id uuid NOT NULL,
   user_id uuid NOT NULL,
   datetime timestamp without time zone NOT NULL,
-  amount money NOT NULL DEFAULT 0.00,
+  amount numeric(6,2) NOT NULL,
   comment character varying(100),
   description character varying(100),
   CONSTRAINT expense_pkey PRIMARY KEY (id),
