@@ -10,7 +10,7 @@ A web app for tracking expenses
 * [x] Add database
 * [x] REST API Account creation
 * [x] REST API Auth
-* [] REST API Create
+* [x] REST API Create
 * [] REST API Read / fetches seven days from a start date (incl.)
 * [] REST API Update
 * [] REST API Delete
@@ -258,12 +258,13 @@ Password will be hashed
 
 ### Expenses
 
-| uid | useruid | datetime | description | amount | comment
+| id | user_id | datetime | description | amount | comment
 
 With constraints
-* `useruid` is present in the User table
+* `id` is a UUID and is the primary key
+* `user_id` is a UUID and a foreign key of the user table's id
 * `datetime` is without timezone
-* `amount` TODO: Look at Postgres currency types
+* `amount` is a postgres money type
 * `description` and `comment` will both be varchars, limit 100
 
 

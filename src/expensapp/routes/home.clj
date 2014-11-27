@@ -1,6 +1,6 @@
 (ns expensapp.routes.home
   (:require [compojure.core :refer :all]
-            [ring.util.response :refer [redirect response status content-type]]
+            [ring.util.response :refer [redirect response status content-type header]]
             [cemerick.friend :as friend]
             (cemerick.friend [workflows :as workflows])
             [cemerick.friend.util :refer [gets]]
@@ -8,6 +8,7 @@
             [marianoguerra.friend-json-workflow :as json-auth]
             [cheshire.core :as json]
             [expensapp.users :as u]
+            [expensapp.expenses :as e]
             [ring.middleware.keyword-params :refer :all]
             [ring.middleware.nested-params :refer :all]
             [ring.middleware.params :refer :all]))
@@ -50,9 +51,18 @@
                    {:status 204})
                {:status 409 :body (str "Username: " username " is already taken")}))))))
 
+(defn make-expense-routes [db]
+  (routes
+   (POST "/expense" req (friend/authenticated
+                         (let [user-id (:id (friend/current-authentication req))]
+                           (let [{:strs [datetime amount comment description]} (:body req)
+                                 expense (e/create db user-id datetime amount comment description)]
+                             (-> {:status 204}
+                                 (header "Location" (format "/expense/%s" (:id expense))))))))))
+
 (defn make-all-routes [db]
   (-> (ring.middleware.session/wrap-session
-       (friend/authenticate (routes app-routes (make-account-routes db))
+       (friend/authenticate (routes app-routes (make-account-routes db) (make-expense-routes db))
                             {:login-uri "/"
                              :default-landing-uri "/session"
                              :workflows [(make-auth-routes db)]
