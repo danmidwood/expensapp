@@ -36,7 +36,7 @@ A web app for tracking expenses
 
 #### Auth
 
-Media Type: `application/vnd.expensapp.auth+json`
+Media Type: `application/vnd.expensapp.auth.v1+json`
 
 ```javascript
 {
@@ -47,7 +47,7 @@ Media Type: `application/vnd.expensapp.auth+json`
 
 #### Expense
 
-Media Type: `application/vnd.expensapp.expense+json`
+Media Type: `application/vnd.expensapp.expense.v1+json`
 
 ```
 {

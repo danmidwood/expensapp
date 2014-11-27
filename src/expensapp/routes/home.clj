@@ -27,7 +27,7 @@
           (if id
             (-> {:user (:username id)}
                 response
-                (content-type "application/vnd.expensapp.auth+json"))
+                (content-type "application/vnd.expensapp.auth.v1+json"))
             {:status 401})))
    (DELETE "/session" req (friend/logout* {:status  204
                                            :headers {}
