@@ -61,7 +61,7 @@ Media Type: `application/vnd.expensapp.expense+json`
 
 #### Expenses
 
-Media Type: `application/vnd.expensapp.expenses+json`
+Media Type: `application/vnd.expensapp.expenses.v1+json`
 
 Expenses are a collection of `Expense` objects.
 

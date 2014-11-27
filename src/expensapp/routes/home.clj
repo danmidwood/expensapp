@@ -51,6 +51,14 @@
                    {:status 204})
                {:status 409 :body (str "Username: " username " is already taken")}))))))
 
+
+(defn- to-js-expense [{:keys [id datetime amount comment description]}]
+  {:datetime (clj-time.coerce/to-long datetime)
+   :amount amount
+   :comment comment
+   :description description
+   :location (format "/expense/%s" id)})
+
 (defn make-expense-routes [db]
   (routes
    (POST "/expense" req (friend/authenticated
@@ -58,7 +66,13 @@
                            (let [{:strs [datetime amount comment description]} (:body req)
                                  expense (e/create db user-id datetime amount comment description)]
                              (-> {:status 204}
-                                 (header "Location" (format "/expense/%s" (:id expense))))))))))
+                                 (header "Location" (format "/expense/%s" (:id expense))))))))
+   (GET "/expense" req
+        (friend/authenticated
+         (if-let [start-date (Long/parseLong (get-in req [:query-params "week_beginning"]))]
+           (let [user-id (:id (friend/current-authentication req))]
+             (-> (response (map to-js-expense (e/get-expenses-from db user-id start-date)))
+                 (content-type "application/vnd.expensapp.expenses.v1+json"))))))))
 
 (defn make-all-routes [db]
   (-> (ring.middleware.session/wrap-session

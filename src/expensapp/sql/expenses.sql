@@ -3,3 +3,10 @@
 INSERT INTO expense (id, user_id, datetime, amount, comment, description)
 VALUES (:id, :user, :datetime, :amount, :comment, :description)
 RETURNING id;
+
+-- name: -get-expenses
+-- Get expenses from the start date and for the next one week
+select * from expense where
+user_id = :user and
+datetime > :start and
+datetime < (:start::timestamp + (INTERVAL '7 days'));
