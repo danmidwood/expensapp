@@ -10,3 +10,9 @@ select * from expense where
 user_id = :user and
 datetime > :start and
 datetime < (:start::timestamp + (INTERVAL '7 days'));
+
+-- name: delete-expense!
+-- Remove an existing expense
+DELETE FROM expense
+where user_id = :user
+and id = :id

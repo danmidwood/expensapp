@@ -7,6 +7,7 @@
 (defqueries "expensapp/sql/expenses.sql"
 ;; -create-expense
 ;; -get-expenses
+;; delete-expense!
 )
 
 (defn create [db user-id datetime amount comment description]

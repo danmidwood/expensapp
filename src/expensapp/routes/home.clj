@@ -72,7 +72,13 @@
          (if-let [start-date (Long/parseLong (get-in req [:query-params "week_beginning"]))]
            (let [user-id (:id (friend/current-authentication req))]
              (-> (response (map to-js-expense (e/get-expenses-from db user-id start-date)))
-                 (content-type "application/vnd.expensapp.expenses.v1+json"))))))))
+                 (content-type "application/vnd.expensapp.expenses.v1+json"))))))
+   (DELETE "/expense/:id" [id :as req]
+        (friend/authenticated
+         (let [user-id (:id (friend/current-authentication req))
+               uuid (java.util.UUID/fromString id)]
+           (e/delete-expense! db user-id uuid)
+           {:status 204})))))
 
 (defn make-all-routes [db]
   (-> (ring.middleware.session/wrap-session

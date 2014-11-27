@@ -11,9 +11,9 @@ A web app for tracking expenses
 * [x] REST API Account creation
 * [x] REST API Auth
 * [x] REST API Create
-* [ ] REST API Read / fetches seven days from a start date (incl.)
+* [x] REST API Read / fetches seven days from a start date (incl.)
 * [ ] REST API Update
-* [ ] REST API Delete
+* [x] REST API Delete
 
 #### Front end
 
@@ -228,6 +228,11 @@ response type: Nothing
 response status: Anything in the 4xx range
 ###### Server error
 response status: Anything in the 5xx range
+
+Note: A success response is confirmation that an expense does not exist. If the
+expense did not exist prior to the DELETE call then a success will still be
+returned.
+
 
 #### Update an Expense
 
