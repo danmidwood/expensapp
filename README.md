@@ -252,9 +252,11 @@ response status: Anything in the 5xx range
 
 ### User Table
 
-| uid | username | password |
+| id | username | password |
 
-Password will be hashed
+* `id` is a UUID and is the primary key
+* `username` is a varchar with length 100
+* `password` is character string of length 60, encrypted with bcrypt
 
 ### Expenses
 
