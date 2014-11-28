@@ -95,10 +95,13 @@ var lorem = ["Collaboratively administrate empowered markets via plug-and-play n
       this.setState({loggedIn: true, username:username});
     },
     logOut: function() {
-      this.setState({loggedIn: false});
+      this.setState({loggedIn: false, username:undefined});
     },
     componentDidMount: function() {
-      // check if logged in
+      Login.isLoggedIn(this.logIn, this.logOut);
+      setInterval(function() {
+        Login.isLoggedIn(this.logIn, this.logOut);
+      }.bind(this), 10000);
     },
     render: function() {
       if (this.state.loggedIn) {

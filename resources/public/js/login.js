@@ -29,6 +29,21 @@ define(function (){
         }.bind(this)
       });
     },
+    isLoggedIn: function(yes, no) {
+      $.ajax({
+        type: 'GET',
+        url: '/session',
+        success: function(data) {
+            yes(data['user']);
+        },
+        error: function(xhr, status, err) {
+          if (xhr.status === 401) {
+            no();
+          }
+        }
+
+      });
+    },
     logout: function(success, fail) {
       $.ajax({
         type: 'DELETE',
