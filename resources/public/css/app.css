@@ -29,7 +29,6 @@ body {
 
 #header > div >h1,h3 {
     font-family: 'Roboto Slab', serif;
-    display: inline;
 }
 
 #header > div > h1 {
@@ -42,6 +41,7 @@ body {
 
 #container {
     background-color: rgba(39,45,59,0.9);
+    color: rgba(200,230,230,1);
 }
 
 #login_box {
@@ -50,18 +50,14 @@ body {
 }
 
 #marketing_bg {
-    background: url(/img/laptop.png) no-repeat;
-    height: 427px;
+    /* background: url(/img/laptop.png) no-repeat; */
 }
 
 #marketing {
-    background-color: rgba(39,45,59,0.30);
     padding: 10px;
     font-size: 1.2em;
-    color: rgba(200,230,230,1);
+    margin-left: 5%;
     margin-right: 25%;
-    height: 407px;
-    overflow: scroll;
 }
 
 #footer {
@@ -73,4 +69,13 @@ body {
   width: 300px ;
   margin-left: auto ;
   margin-right: auto ;
+}
+
+.ui.labeled.input:not([class*="corner labeled"]):not([class*="right labeled"]) > .label {
+    width: 93px;
+    display: inline-block;
+    font-size: 0.9em;
+    border-radius: 0px;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
 }

@@ -385,7 +385,5 @@ Copyright © 2014 Daniel Midwood
 
 Licensed under the MIT License, except:
 * clock-bg.jpg that is licensed under CC0 by [Grasisography][4]
-* laptop.png that is licensed under CC-License: CC BY [Markus Spiske][5]
 
 [4] http://www.gratisography.com/
-[5] http://www.temporausch.com
