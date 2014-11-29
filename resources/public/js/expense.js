@@ -10,7 +10,15 @@ define(function (){
         },
         error: function(xhr, status, err) {
           error(xhr, status, err);
-        }.bind(this)
+        }
+      });
+    },
+    delete: function(location, success, error) {
+      $.ajax({
+        type: 'DELETE',
+        url: location,
+        success: success,
+        error: error
       });
     }
   };

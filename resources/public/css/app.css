@@ -88,5 +88,7 @@ body {
 .ui.table tbody tr.day {
   background: #f0f0f0;
   color: rgba(0, 0, 0, 0.8);
-
+}
+.ui.table tbody tr.day > td {
+    border-left: none;
 }

@@ -135,7 +135,10 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
         React.DOM.th(
           {className: "time"}, "Description"),
         React.DOM.th(
-          {className: "time"}, "Comment"));
+          {className: "time"}, "Comment"),
+        React.DOM.th(
+          {className: "delete"}, ""));
+
     }
   });
 
@@ -155,19 +158,34 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
                           React.DOM.td(
                             {className: "day", colSpan:3}, day),
                           React.DOM.td(
-                            {className: "date right aligned"}, dayOfMonth + ' ' + month + ', ' + year));
+                            {className: "date right aligned"}, dayOfMonth + ' ' + month + ', ' + year),
+                          React.DOM.td(
+                            {}, ""));
     }
   });
 
   var Expense_ = React.createClass({
-    // props {expense:}
+    getInitialState: function() {
+      return {deleting: false, error: false};
+    },
+    // props {expense:, onDelete}
     render: function() {
       return React.DOM.tr(
         {},
         React.DOM.td({className: "time"}, new Date(this.props.datetime).getHours() + ':' + new Date(this.props.datetime).getMinutes()),
         React.DOM.td({className: "amount"}, this.props.amount.toFixed(2)),
         React.DOM.td({className: "description"}, this.props.description),
-        React.DOM.td({className: "comment"}, this.props.comment));
+        React.DOM.td({className: "comment"}, this.props.comment),
+        React.DOM.td({className: "delete" + (this.state.deleting ? " loading" : "") + (this.state.error ? " error" : "")},
+                     React.DOM.a({href:"#", onClick:function() {
+                       this.setState({deleting: true});
+                       Expense.delete(this.props.location, function() {
+                         this.props.onDelete(this);
+                       }.bind(this), function(error) {
+                         this.setState({deleting:false, error:true});
+                       });
+                       return false;
+                     }.bind(this)}, "[x]")));
     }
   });
 
@@ -187,10 +205,15 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
         dayHeaderRows.push(ExpensesDayRow({datetime:dateCopy.getTime(), key:dateCopy.getTime()}));
       }
       var keyedExpenses = this.props.expenses.map(Expense_)
-      .map(function(x) {
+      .map(function(x, idx) {
         x.props['key'] = x.props['location'];
+        x.props.onDelete = function() {
+          var newExps = this.props.expenses;
+          var removes = this.props.expenses.splice(idx,1);
+          this.props.updateExpenses(newExps);
+        }.bind(this);
         return x;
-      });
+      }.bind(this));
       var expenses = dayHeaderRows.concat(keyedExpenses).sort(function(a,b) {
         if (a.props.datetime === b.props.datetime) {
           if (a.props.hasOwnProperty("amount")) {
