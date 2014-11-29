@@ -23,9 +23,9 @@ A web app for tracking expenses.
 * [x] Add Account creation
 * [x] Add Login
 * [x] Add login/join page design
-* [ ] Create "expenses" view
+* [x] Create "expenses" view
 * [ ] Add new expense
-* [ ] Display expenses for current week
+* [/] Display expenses for current week
 * * [ ] Add average display
 * * [ ] Add total display
 * [ ] Allow the selected week to be changed

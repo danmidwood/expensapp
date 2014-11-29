@@ -66,28 +66,138 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
 
   var ExpensesPage = React.createClass({
     displayName: 'Expenses',
+    componentDidMount: function() {
+      Expense.list(1417046144581, function(expenses) {
+        setTimeout(function() {this.setState({loading:false});}.bind(this), 3000);
+        this.updateExpenses(expenses);
+      }.bind(this), this.onExpensesFailedToLoad);
+    },
+    getInitialState: function() {
+      return {expenses:[]};
+    },
+    updateExpenses: function(expenses){
+      this.setState({expenses: expenses});
+    },
+    onExpensesFailedToLoad: function() {
+    },
     logout: function() {
       Login.logout(this.props.signalLoggedOut, function() {console.log("Could not logout");});
       return false;
     },
     render: function() {
       return (
-        React.DOM.div({className: "overlay"},
+        React.DOM.div({className: "twelve wide column loading"},
                       React.DOM.p({}, "Hi " + this.props.username + "! You are logged in. "),
-                      React.DOM.a({onClick:this.logout, href:'#'}, "Logout")
+                      React.DOM.a({onClick:this.logout, href:'#'}, "Logout"),
+                      ExpensesTable({expenses:this.state.expenses, updateExpenses: this.updateExpenses})
                      ));
     }
   });
 
+  var ExpensesTableHeader = React.createClass({
+    render: function() {
+      return React.DOM.tr(
+        {className:"floated"},
+        React.DOM.th(
+          {className: "time"}, "Time"),
+        React.DOM.th(
+          {className: "time"}, "Amount"),
+        React.DOM.th(
+          {className: "time"}, "Description"),
+        React.DOM.th(
+          {className: "time"}, "Comment"));
+    }
+  });
 
-var lorem = ["Collaboratively administrate empowered markets via plug-and-play networks. Dynamically procrastinate B2C users after installed base benefits. Dramatically visualize customer directed convergence without revolutionary ROI.",
-              "Efficiently unleash cross-media information without cross-media value. Quickly maximize timely deliverables for real-time schemas. Dramatically maintain clicks-and-mortar solutions without functional solutions.",
-              "Completely synergize resource sucking relationships via premier niche markets. Professionally cultivate one-to-one customer service with robust ideas. Dynamically innovate resource-leveling customer service for state of the art customer service.",
-              "Objectively innovate empowered manufactured products whereas parallel platforms. Holisticly predominate extensible testing procedures for reliable supply chains. Dramatically engage top-line web services vis-a-vis cutting-edge deliverables."];
+  var ExpensesDayRow = React.createClass({
+    // props {timestamp:}
+    days: ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday",
+           "Saturday"],
+    months: ["January", "February", "March", "April", "May", "June", "July",
+             "August", "September", "October", "November", "December"],
+    render: function() {
+      var date = new Date(this.props.timestamp);
+      var day = this.days[date.getDay()];
+      var dayOfMonth = date.getDate();
+      var month = this.months[date.getMonth()];
+      var year = date.getFullYear();
+      return React.DOM.tr({key:day, className:"day"},
+                          React.DOM.td(
+                            {className: "day", colSpan:3}, day),
+                          React.DOM.td(
+                            {className: "date right aligned"}, dayOfMonth + ' ' + month + ', ' + year));
+    }
+  });
+
+  var Expense_ = React.createClass({
+    // props {expense:}
+    render: function() {
+      return React.DOM.tr(
+        {},
+        React.DOM.td({className: "time"}, new Date(this.props.datetime).getHours() + ':' + new Date(this.props.datetime).getMinutes()),
+        React.DOM.td({className: "amount"}, this.props.amount.toFixed(2)),
+        React.DOM.td({className: "description"}, this.props.description),
+        React.DOM.td({className: "comment"}, this.props.comment));
+    }
+  });
+
+  var ExpensesTable = React.createClass({
+    // props {expenses:, updateExpenses }
+    dummy: [],
+    displayName: 'ExpenseTable',
+    logout: function() {
+      Login.logout(this.props.signalLoggedOut, function() {console.log("Could not logout");});
+      return false;
+    },
+    render: function() {
+      var timestamp = 1416236040581;
+      var expenses = this.props.expenses.sort(
+        function(a,b) {
+          return a.datetime - b.datetime;
+        }
+      ).map(Expense_)
+      .map(function(x) {
+        x.props['key'] = x.props['location'];
+        return x;
+      })
+      .reduce(function(previous,current,idx,array) {
+        if (previous.length === 0){
+          previous.push(ExpensesDayRow({timestamp:current.props.datetime, key:current.props.datetime}));
+        } else {
+          var last = previous[previous.length - 1];
+          var lastDate = new Date(last.props.datetime).getDate();
+          var currentDate = new Date(current.props.datetime).getDate();
+          if (lastDate !== currentDate) {
+            previous.push(ExpensesDayRow({timestamp:current.props.datetime, key:current.props.datetime}));
+          }
+        }
+        previous.push(current);
+        return previous;
+      },[]);
+      return (
+        React.DOM.table(
+          {className:"ui compact celled table"},
+          React.DOM.thead(
+            {},
+            ExpensesTableHeader()
+          ),
+          React.DOM.tbody(
+            {},
+            expenses
+          )
+        ));
+    }
+  });
+
+
 
 
   var App = React.createClass({
     displayName: 'App',
+    lorem: ["Collaboratively administrate empowered markets via plug-and-play networks. Dynamically procrastinate B2C users after installed base benefits. Dramatically visualize customer directed convergence without revolutionary ROI.",
+              "Efficiently unleash cross-media information without cross-media value. Quickly maximize timely deliverables for real-time schemas. Dramatically maintain clicks-and-mortar solutions without functional solutions.",
+              "Completely synergize resource sucking relationships via premier niche markets. Professionally cultivate one-to-one customer service with robust ideas. Dynamically innovate resource-leveling customer service for state of the art customer service.",
+              "Objectively innovate empowered manufactured products whereas parallel platforms. Holisticly predominate extensible testing procedures for reliable supply chains. Dramatically engage top-line web services vis-a-vis cutting-edge deliverables."],
     getInitialState: function() {
       return {loggedIn: false};
     },
@@ -105,11 +215,16 @@ var lorem = ["Collaboratively administrate empowered markets via plug-and-play n
     },
     render: function() {
       if (this.state.loggedIn) {
-        return ExpensesPage({signalLoggedOut: this.logOut, username:this.state.username});
+        return React.DOM.div({id:"container", className: "row"},
+                             React.DOM.div({id: "marketing_bg", className: "four wide column"},
+                                           React.DOM.div({id: "marketing"}, this.lorem.slice(2).map(function(x) {return React.DOM.p({key:x}, x);}))
+                                          ),
+                             ExpensesPage({signalLoggedOut: this.logOut, username:this.state.username}));
+
       } else {
         return React.DOM.div({id:"container", className: "row"},
                              React.DOM.div({id: "marketing_bg", className: "ten wide column"},
-                                           React.DOM.div({id: "marketing"}, lorem.map(function(x) {return React.DOM.p({}, x);}))
+                                           React.DOM.div({id: "marketing"}, this.lorem.map(function(x) {return React.DOM.p({key:x}, x);}))
                                           ),
                              React.DOM.div({className:"column", id: "login_box"},
                                            LoginPage({signalLoggedIn: this.logIn})));

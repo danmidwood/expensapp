@@ -84,3 +84,9 @@ body {
 .ui.form.info .info.message {
   display: block;
 }
+
+.ui.table tbody tr.day {
+  background: #f0f0f0;
+  color: rgba(0, 0, 0, 0.8);
+
+}
