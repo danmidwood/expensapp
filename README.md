@@ -2,7 +2,7 @@
 
 A web app for tracking expenses.
 
-![Login screen](/doc/login_screen.png "Login screen")
+![App screen](/doc/app_screen.png "App screen")
 
 ## Roadmap
 
