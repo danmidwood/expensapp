@@ -67,13 +67,27 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
   var ExpensesPage = React.createClass({
     displayName: 'Expenses',
     componentDidMount: function() {
-      Expense.list(1417046144581, function(expenses) {
-        setTimeout(function() {this.setState({loading:false});}.bind(this), 3000);
+      Expense.list(this.state.date.getTime(), function(expenses) {
         this.updateExpenses(expenses);
       }.bind(this), this.onExpensesFailedToLoad);
     },
+    makeWeek: function(date) {
+      // Minus the day from the date to get back to Monday
+      // Wrap and mod to deal with Sunday being the JS first day of the week
+      date.setDate(date.getDate() - ((date.getDay() - 1 + 7) % 7));
+      date.setHours(0,0,0,0);
+      return date;
+    },
     getInitialState: function() {
-      return {expenses:[]};
+      return {date: this.makeWeek(new Date()), expenses:[]};
+    },
+    moveWeek: function(noOfWeeks) {
+      var currentDate = this.state.date;
+      this.setState({expenses: [],
+                     date: new Date(currentDate.setDate(currentDate.getDate() + (noOfWeeks * 7)))});
+      Expense.list(this.state.date.getTime(), function(expenses) {
+        this.updateExpenses(expenses);
+      }.bind(this), this.onExpensesFailedToLoad);
     },
     updateExpenses: function(expenses){
       this.setState({expenses: expenses});
@@ -85,12 +99,28 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
       return false;
     },
     render: function() {
+
       return (
         React.DOM.div({className: "twelve wide column loading"},
                       React.DOM.p({}, "Hi " + this.props.username + "! You are logged in. "),
                       React.DOM.a({onClick:this.logout, href:'#'}, "Logout"),
-                      ExpensesTable({expenses:this.state.expenses, updateExpenses: this.updateExpenses})
+                      DatePicker({date:this.state.date, moveWeek:this.moveWeek}),
+                      ExpensesTable({date:this.state.date, expenses:this.state.expenses, updateExpenses: this.updateExpenses})
                      ));
+    }
+  });
+
+  var DatePicker = React.createClass({
+    // props moveWeek, date
+    render: function() {
+      var date = this.props.date.getDate();
+      var month = this.props.date.getMonth() + 1;
+      var year = this.props.date.getFullYear();
+      return React.DOM.div({className: "datepicker ui grid"},
+                           React.DOM.div({className:"column right aligned"},
+                                         React.DOM.a({href:'#',onClick: function() {this.props.moveWeek(-1); return false;}.bind(this)},"<<<"),
+                                         React.DOM.span({}, ' Week commencing: ' + date + '/' + month + '/' + year + ' '),
+                                         React.DOM.a({href:'#',onClick: function() {this.props.moveWeek(1); return false;}.bind(this)},">>>")));
     }
   });
 
@@ -110,13 +140,13 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
   });
 
   var ExpensesDayRow = React.createClass({
-    // props {timestamp:}
+    // props {datetime:}
     days: ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday",
            "Saturday"],
     months: ["January", "February", "March", "April", "May", "June", "July",
              "August", "September", "October", "November", "December"],
     render: function() {
-      var date = new Date(this.props.timestamp);
+      var date = new Date(this.props.datetime);
       var day = this.days[date.getDay()];
       var dayOfMonth = date.getDate();
       var month = this.months[date.getMonth()];
@@ -142,7 +172,7 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
   });
 
   var ExpensesTable = React.createClass({
-    // props {expenses:, updateExpenses }
+    // props {expenses:, updateExpenses, date }
     dummy: [],
     displayName: 'ExpenseTable',
     logout: function() {
@@ -150,30 +180,30 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
       return false;
     },
     render: function() {
-      var timestamp = 1416236040581;
-      var expenses = this.props.expenses.sort(
-        function(a,b) {
-          return a.datetime - b.datetime;
-        }
-      ).map(Expense_)
+      var dayHeaderRows = [];
+      for(var i=0; i < 7; i++) {
+        var dateCopy = new Date(this.props.date.getTime());
+        dateCopy.setDate(dateCopy.getDate() + i);
+        dayHeaderRows.push(ExpensesDayRow({datetime:dateCopy.getTime(), key:dateCopy.getTime()}));
+      }
+      var keyedExpenses = this.props.expenses.map(Expense_)
       .map(function(x) {
         x.props['key'] = x.props['location'];
         return x;
-      })
-      .reduce(function(previous,current,idx,array) {
-        if (previous.length === 0){
-          previous.push(ExpensesDayRow({timestamp:current.props.datetime, key:current.props.datetime}));
-        } else {
-          var last = previous[previous.length - 1];
-          var lastDate = new Date(last.props.datetime).getDate();
-          var currentDate = new Date(current.props.datetime).getDate();
-          if (lastDate !== currentDate) {
-            previous.push(ExpensesDayRow({timestamp:current.props.datetime, key:current.props.datetime}));
+      });
+      var expenses = dayHeaderRows.concat(keyedExpenses).sort(function(a,b) {
+        if (a.props.datetime === b.props.datetime) {
+          if (a.props.hasOwnProperty("amount")) {
+            return -1;
+          } else {
+            return 1;
           }
         }
-        previous.push(current);
-        return previous;
-      },[]);
+        else {
+          return a.props.datetime - b.props.datetime;
+        }
+      });
+
       return (
         React.DOM.table(
           {className:"ui compact celled table"},
@@ -219,7 +249,7 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
                              React.DOM.div({id: "marketing_bg", className: "four wide column"},
                                            React.DOM.div({id: "marketing"}, this.lorem.slice(2).map(function(x) {return React.DOM.p({key:x}, x);}))
                                           ),
-                             ExpensesPage({signalLoggedOut: this.logOut, username:this.state.username}));
+                             ExpensesPage({timestamp: 1417046144581, signalLoggedOut: this.logOut, username:this.state.username}));
 
       } else {
         return React.DOM.div({id:"container", className: "row"},
