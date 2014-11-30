@@ -145,9 +145,23 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
         React.DOM.th(
           {className: "time"}, "Amount"),
         React.DOM.th(
-          {className: "time"}, "Description"),
+          {className: "time"},
+          React.DOM.span({},"Description > "),
+          React.DOM.label({}, "filter:",
+                          React.DOM.input(
+                            {onChange: function(e) {
+                              this.props.filterDescription(e.target.value);
+                              return true;
+                            }.bind(this)}))),
         React.DOM.th(
-          {className: "time"}, "Comment"),
+          {className: "time"},
+          React.DOM.span({},"Comment > "),
+          React.DOM.label({}, "filter:",
+                          React.DOM.input(
+                            {onChange: function(e) {
+                              this.props.filterComment(e.target.value);
+                              return true;
+                            }.bind(this)}))),
         React.DOM.th(
           {className: "delete"}, ""));
 
@@ -382,7 +396,13 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
     // props {expenses:, updateExpenses, replaceExpense date }
     dummy: [],
     getInitialState: function() {
-      return {adding:undefined};
+      return {adding:undefined,filterDescription:undefined, filterComment:undefined};
+    },
+    filterDescription: function(expense) {
+      return this.state.filterDescription === undefined || expense.description.indexOf(this.state.filterDescription) !== -1;
+    },
+    filterComment: function(expense) {
+      return this.state.filterComment === undefined || expense.comment.indexOf(this.state.filterComment) !== -1;
     },
     displayName: 'ExpenseTable',
     logout: function() {
@@ -390,11 +410,12 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
       return false;
     },
     render: function() {
+      var expensesToDisplay = this.props.expenses.filter(this.filterDescription).filter(this.filterComment);
       var dayHeaderRows = [];
       for(var i=0; i < 7; i++) {
         var dateCopy = new Date(this.props.date.getTime());
         dateCopy.setDate(dateCopy.getDate() + i);
-        dayHeaderRows.push(ExpensesDayRow({expenses:this.props.expenses, datetime:dateCopy.getTime(), key:dateCopy.getTime(), add:function(time) {
+        dayHeaderRows.push(ExpensesDayRow({expenses:expensesToDisplay, datetime:dateCopy.getTime(), key:dateCopy.getTime(), add:function(time) {
           this.setState({adding:time});
         }.bind(this)}));
       }
@@ -412,7 +433,7 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
           this.props.updateExpenses(newExpenses);
         }.bind(this)}));
       }
-      var keyedExpenses = this.props.expenses.map(Expense_)
+      var keyedExpenses = expensesToDisplay.map(Expense_)
       .map(function(x, idx) {
         x.props['key'] = x.props['location'];
         x.props.onDelete = function() {
@@ -453,16 +474,30 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
           {className:"ui compact celled table"},
           React.DOM.thead(
             {},
-            ExpensesTableHeader()
+            ExpensesTableHeader(
+              {filterDescription:function(text) {
+                if (text.length === 0) {
+                  this.setState({filterDescription:undefined});
+                } else {
+                  this.setState({filterDescription:text});
+                }
+              }.bind(this), filterComment:function(text) {
+                if (text.length === 0) {
+                  this.setState({filterComment:undefined});
+                } else {
+                  this.setState({filterComment:text});
+                }
+              }.bind(this)})
           ),
           React.DOM.tbody(
             {},
             expenses,
-            TotalRow({expenses:this.props.expenses})
+            TotalRow({expenses:expensesToDisplay})
           )
         ));
     }
   });
+
 
 
 
