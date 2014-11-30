@@ -143,7 +143,7 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
   });
 
   var ExpensesDayRow = React.createClass({
-    // props {datetime:}
+    // props {datetime:, add}
     days: ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday",
            "Saturday"],
     months: ["January", "February", "March", "April", "May", "June", "July",
@@ -160,38 +160,183 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
                           React.DOM.td(
                             {className: "date right aligned"}, dayOfMonth + ' ' + month + ', ' + year),
                           React.DOM.td(
-                            {}, ""));
+                            {className:"", onClick:function() {
+                              this.props.add(this.props.datetime);
+                              return false;
+                            }.bind(this)}, "[+]"));
     }
   });
 
-  var Expense_ = React.createClass({
-    getInitialState: function() {
-      return {deleting: false, error: false};
+  var ExpenseDeleteCell = React.createClass({
+    render: function() {
+      return React.DOM.a({href:"#", onClick:function() {
+        Expense.delete(this.props.location, function() {
+          this.props.onDelete(this);
+        }.bind(this), function(error) {
+          this.setState({deleting:false, error:true});
+        });
+        return false;
+      }.bind(this)}, "[x]");
+    }
+  });
+
+
+  var NewExpense = React.createClass({
+    // props {onSave:, datetime}
+    renderDatetime: function(datetime) {
+      return new Date(datetime).getHours() + ":" + new Date(datetime).getMinutes();
     },
-    // props {expense:, onDelete}
+    renderAmount: function(amount) {
+      return amount.toFixed(2);
+    },
+    getInitialState: function () {
+      var datetime = this.props.datetime;
+      return {datetime: datetime,
+              datetimeInEdit:this.renderDatetime(datetime),
+              amount:0.0,
+              amountInEdit:this.renderAmount(0.0),
+              description: "",
+              comment: ""};
+    },
+    save: function(){
+      Expense.save(this.state.datetime, this.state.amount, this.state.description, this.state.comment, this.onSave, this.onSaveFailed);
+    },
+    onSave: function(location) {
+      this.props.onSave(this.state.datetime, this.state.amount, this.state.description, this.state.comment, location);
+    },
+    onSaveFailed: function() {
+      alert('Could not save. Is your date correct?');
+    },
+    updateAmount: function(amount) {
+      this.setState({amountInEdit:amount});
+    },
+    validatedUpdateAmount: function(amountStr) {
+      var amountFloat = parseFloat(amountStr);
+      if (!isNaN(amountFloat)) {
+        this.setState({amount:amountFloat,
+                      amountInEdit:this.renderAmount(amountFloat)});
+      } else {
+        this.setState({amountInEdit:this.renderAmount(this.state.amount)});
+      }
+    },
+    updateDate: function(hhMMStr) {
+      this.setState({datetimeInEdit: hhMMStr});
+    },
+    validatedUpdateDate: function(hhMMStr) {
+      // Validate and update
+      var hhMm = hhMMStr.split(":");
+      var newTime = new Date(this.state.datetime);
+      newTime.setHours(hhMm[0]);
+      if (hhMm.length > 1) {
+        newTime.setMinutes(hhMm[1]);
+      } else {
+        newTime.setMinutes(0);
+      }
+      if (isNaN(newTime.getTime())) {
+        this.setState({datetimeInEdit:this.renderDatetime(this.state.datetime)});
+      } else {
+        this.setState({datetime:newTime.getTime(),
+                       datetimeInEdit:this.renderDatetime(newTime.getTime())
+                      });
+      }
+    },
     render: function() {
       return React.DOM.tr(
         {},
-        React.DOM.td({className: "time"}, new Date(this.props.datetime).getHours() + ':' + new Date(this.props.datetime).getMinutes()),
-        React.DOM.td({className: "amount"}, this.props.amount.toFixed(2)),
-        React.DOM.td({className: "description"}, this.props.description),
-        React.DOM.td({className: "comment"}, this.props.comment),
-        React.DOM.td({className: "delete" + (this.state.deleting ? " loading" : "") + (this.state.error ? " error" : "")},
-                     React.DOM.a({href:"#", onClick:function() {
-                       this.setState({deleting: true});
-                       Expense.delete(this.props.location, function() {
-                         this.props.onDelete(this);
-                       }.bind(this), function(error) {
-                         this.setState({deleting:false, error:true});
-                       });
-                       return false;
-                     }.bind(this)}, "[x]")));
+        React.DOM.td(
+          {className: "time"},
+          React.DOM.input({
+            value: this.state.datetimeInEdit,
+            onChange:function(e) {
+              this.updateDate(e.target.value);
+              return true;
+            }.bind(this),
+            onBlur:function(e) {
+              this.validatedUpdateDate(e.target.value);
+              return true;
+            }.bind(this)})),
+        React.DOM.td(
+          {className: "amount"},
+          React.DOM.input({
+            value: this.state.amountInEdit,
+            onChange:function(e) {
+              this.updateAmount(e.target.value);
+              return true;
+            }.bind(this),
+            onBlur: function(e) {
+              this.validatedUpdateAmount(e.target.value);
+            }.bind(this)})),
+        React.DOM.td(
+          {className: "description"},
+          React.DOM.input({value:this.state.description, onChange:function(e) {
+            this.setState({description:e.target.value});
+            return true;
+          }.bind(this)})),
+        React.DOM.td(
+          {className: "comment"},
+          React.DOM.input({value:this.state.comment, onChange:function(e) {
+            this.setState({comment:e.target.value});
+            return true;
+          }.bind(this)})),
+        React.DOM.td({className: "save"},
+                    React.DOM.button({onClick:this.save}, "Save")));
+
+    }
+  });
+
+
+
+
+  var Expense_ = React.createClass({
+    // props {onDelete, onUpdate}
+    getInitialState: function() {
+      return {deleting: false, error: false};
+    },
+    render: function() {
+      return React.DOM.tr(
+        {},
+        React.DOM.td({className: "time", contentEditable:true, onBlur:function(e) {
+          var timeStr = e.currentTarget.textContent;
+          var hhMm = timeStr.split(":");
+          var newTime = new Date(this.state.time);
+          newTime.setHours(hhMm[0]);
+          newTime.setMinutes(hhMm[1]);
+          if (!isNaN(newTime.getTime())) {
+            this.setState({time:newTime});
+            return true;
+          } else {
+            return false;
+          }
+        }.bind(this)}, new Date(this.props.datetime).getHours() + ':' + new Date(this.props.datetime).getMinutes()),
+        React.DOM.td({className: "amount", contentEditable:true, onBlur:function(e) {
+          var amountStr = e.currentTarget.textContent;
+          var amountFloat = parseFloat(amountStr);
+          if (!isNaN(amountFloat)) {
+            this.setState({amount:amountFloat});
+            return true;
+          } else {
+            return false;
+          }
+        }.bind(this)}, this.props.amount.toFixed(2)),
+        React.DOM.td({className: "description", contentEditable:true, onBlur:function(e) {
+          this.setState({description:e.currentTarget.textContent});
+          return true;
+        }.bind(this)}, this.props.description),
+        React.DOM.td({className: "comment", contentEditable:true, onBlur:function(e) {
+          this.setState({comment:e.currentTarget.textContent});
+          return true;
+        }.bind(this)}, this.props.comment),
+        React.DOM.td({className: "update" + (this.state.deleting ? " deleting" : "") + (this.state.error ? " error" : "")},
+                    ExpenseDeleteCell({location: this.props.location, onDelete:this.props.onDelete})));
     }
   });
 
   var ExpensesTable = React.createClass({
     // props {expenses:, updateExpenses, date }
     dummy: [],
+    getInitialState: function() {
+      return {adding:undefined};
+    },
     displayName: 'ExpenseTable',
     logout: function() {
       Login.logout(this.props.signalLoggedOut, function() {console.log("Could not logout");});
@@ -202,7 +347,23 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
       for(var i=0; i < 7; i++) {
         var dateCopy = new Date(this.props.date.getTime());
         dateCopy.setDate(dateCopy.getDate() + i);
-        dayHeaderRows.push(ExpensesDayRow({datetime:dateCopy.getTime(), key:dateCopy.getTime()}));
+        dayHeaderRows.push(ExpensesDayRow({datetime:dateCopy.getTime(), key:dateCopy.getTime(), add:function(time) {
+          this.setState({adding:time});
+        }.bind(this)}));
+      }
+      if (this.state.adding !== undefined) {
+        dayHeaderRows.push(NewExpense({datetime:this.state.adding, onSave:function(datetime, amount, description, comment, location){
+          var newExpenses = this.props.expenses;
+          newExpenses.push({
+            datetime: datetime,
+            amount: amount,
+            description:description,
+            comment: comment,
+            location: location
+          });
+          this.setState({adding: undefined});
+          this.props.updateExpenses(newExpenses);
+        }.bind(this)}));
       }
       var keyedExpenses = this.props.expenses.map(Expense_)
       .map(function(x, idx) {
@@ -216,7 +377,11 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
       }.bind(this));
       var expenses = dayHeaderRows.concat(keyedExpenses).sort(function(a,b) {
         if (a.props.datetime === b.props.datetime) {
-          if (a.props.hasOwnProperty("amount")) {
+          if (!a.props.hasOwnProperty("amount")) {
+            return -1;
+          } else if (!b.props.hasOwnProperty("amount")) {
+            return 1;
+          } else if (a.props.editing) {
             return -1;
           } else {
             return 1;

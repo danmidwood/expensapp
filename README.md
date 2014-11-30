@@ -24,12 +24,12 @@ A web app for tracking expenses.
 * [x] Add Login
 * [x] Add login/join page design
 * [x] Create "expenses" view
-* [ ] Add new expense
+* [x] Add new expense
 * [x] Display expenses for current week
 * * [ ] Add average display
 * * [ ] Add total display
 * [x] Allow the selected week to be changed
-* [ ] Delete expense
+* [x] Delete expense
 * [ ] Update an expense
 * [ ] Make display print nicely
 
