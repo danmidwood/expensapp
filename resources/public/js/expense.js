@@ -20,6 +20,19 @@ define(function (){
         success: success,
         error: error
       });
+    },
+    save: function(datetime, amount, description, comment, success, error) {
+      $.ajax({
+        type:'POST',
+        url: '/expense',
+        contentType: 'application/vnd.expensapp.expense.v1+json',
+        data: JSON.stringify({datetime: datetime, amount: amount, description: description, comment: comment}),
+        success: function(data, status, request) {
+          var location = request.getResponseHeader('Location');
+          success(location);
+        },
+        error: error
+      });
     }
   };
 });
