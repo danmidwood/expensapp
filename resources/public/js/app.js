@@ -275,11 +275,7 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
       var hhMm = hhMMStr.split(":");
       var newTime = new Date(this.state.datetime);
       newTime.setHours(hhMm[0]);
-      if (hhMm.length > 1) {
-        newTime.setMinutes(hhMm[1]);
-      } else {
-        newTime.setMinutes(0);
-      }
+      newTime.setMinutes(hhMm.length > 1 ? hhMm[1] : 0);
       if (isNaN(newTime.getTime())) {
         this.setState({datetimeInEdit:this.renderDatetime(this.state.datetime)});
       } else {
@@ -327,7 +323,7 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
             return true;
           }.bind(this)})),
         React.DOM.td({className: "save"},
-                    React.DOM.button({onClick:this.save})));
+                    React.DOM.button({onClick:this.save}, "Save")));
 
     }
   });
@@ -348,9 +344,7 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
           var hhMm = timeStr.split(":");
           var newTime = new Date(this.props.datetime);
           newTime.setHours(hhMm[0]);
-          if (hhMm.length > 1) {
-            newTime.setMinutes(hhMm[1]);
-          }
+          newTime.setMinutes(hhMm.length > 1 ? hhMm[1] : 0);
           if (!isNaN(newTime.getTime())) {
             this.props.onUpdate({datetime:newTime.getTime()});
             return true;
