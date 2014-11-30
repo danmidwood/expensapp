@@ -96,7 +96,11 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
       var newExpenses = this.state.expenses.filter(function(value) {
         return value.location !== expense.location;
       });
-      newExpenses.push(expense);
+      if (expense.datetime >= this.state.date.getTime()
+         && expense.datetime < this.state.date.getTime() + 604800000) {
+        // if it's still on this week.. 604800000 === one week
+        newExpenses.push(expense);
+      }
       this.setState({expenses: newExpenses});
     },
     onExpensesFailedToLoad: function() {
@@ -150,6 +154,25 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
     }
   });
 
+  var TotalRow = React.createClass({
+    render: function() {
+      var totalAmount = this.props.expenses.reduce(function(a,b) {
+        var newTotal = a.total + b.amount;
+        var newNumber = a.number + 1;
+        return {total:newTotal, number:newNumber};
+      },
+      {total:0, number:0});
+
+      return React.DOM.tr(
+        {className:""},
+        React.DOM.th(
+          {className: ""}),
+        React.DOM.th(
+          {className: "total"}, "Week total: " + totalAmount.total));
+
+    }
+  });
+
   var ExpensesDayRow = React.createClass({
     // props {datetime:, add}
     days: ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday",
@@ -162,9 +185,25 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
       var dayOfMonth = date.getDate();
       var month = this.months[date.getMonth()];
       var year = date.getFullYear();
+      var totalAmount = this.props.expenses
+            .filter(
+              function(a) {
+                return new Date(a.datetime).getDate() === dayOfMonth;
+              }
+            )
+            .reduce(
+              function(a,b) {
+                var newTotal = a.total + b.amount;
+                var newNumber = a.number + 1;
+                return {total:newTotal, number:newNumber};
+              },
+              {total:0, number:0}
+            );
       return React.DOM.tr({key:day, className:"day"},
                           React.DOM.td(
-                            {className: "day", colSpan:3}, day),
+                            {className: "day", colSpan:1}, day),
+                          React.DOM.td(
+                            {className: "day", colSpan:2}, totalAmount.number > 0 ? "Daily total: " + renderMoney(totalAmount.total) + ", average: " + renderMoney(totalAmount.total / totalAmount.number) : ""),
                           React.DOM.td(
                             {className: "date right aligned"}, dayOfMonth + ' ' + month + ', ' + year),
                           React.DOM.td(
@@ -188,21 +227,22 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
     }
   });
 
+  var renderMoney = function(amount) {
+    return amount.toFixed(2);
+  };
+
 
   var NewExpense = React.createClass({
     // props {onSave:, datetime}
     renderDatetime: function(datetime) {
       return new Date(datetime).getHours() + ":" + new Date(datetime).getMinutes();
     },
-    renderAmount: function(amount) {
-      return amount.toFixed(2);
-    },
     getInitialState: function () {
       var datetime = this.props.datetime;
       return {datetime: datetime,
               datetimeInEdit:this.renderDatetime(datetime),
               amount:0.0,
-              amountInEdit:this.renderAmount(0.0),
+              amountInEdit:renderMoney(0.0),
               description: "",
               comment: ""};
     },
@@ -222,9 +262,9 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
       var amountFloat = parseFloat(amountStr);
       if (!isNaN(amountFloat)) {
         this.setState({amount:amountFloat,
-                      amountInEdit:this.renderAmount(amountFloat)});
+                      amountInEdit:renderMoney(amountFloat)});
       } else {
-        this.setState({amountInEdit:this.renderAmount(this.state.amount)});
+        this.setState({amountInEdit:renderMoney(this.state.amount)});
       }
     },
     updateDate: function(hhMMStr) {
@@ -324,12 +364,13 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
           var amountStr = e.currentTarget.textContent;
           var amountFloat = parseFloat(amountStr);
           if (!isNaN(amountFloat)) {
-            this.props.onUpdate({amount:amountFloat});
+            e.currentTarget.textContent = renderMoney(amountFloat);
+            this.props.onUpdate({amount:parseFloat(amountFloat.toPrecision(2))});
             return true;
           } else {
             return false;
           }
-        }.bind(this)}, this.props.amount.toFixed(2)),
+        }.bind(this)}, renderMoney(this.props.amount)),
         React.DOM.td({className: "description", contentEditable:true, onBlur:function(e) {
           this.props.onUpdate({description:e.target.textContent});
           return true;
@@ -359,7 +400,7 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
       for(var i=0; i < 7; i++) {
         var dateCopy = new Date(this.props.date.getTime());
         dateCopy.setDate(dateCopy.getDate() + i);
-        dayHeaderRows.push(ExpensesDayRow({datetime:dateCopy.getTime(), key:dateCopy.getTime(), add:function(time) {
+        dayHeaderRows.push(ExpensesDayRow({expenses:this.props.expenses, datetime:dateCopy.getTime(), key:dateCopy.getTime(), add:function(time) {
           this.setState({adding:time});
         }.bind(this)}));
       }
@@ -395,6 +436,7 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
         }.bind(this);
         return x;
       }.bind(this));
+
       var expenses = dayHeaderRows.concat(keyedExpenses).sort(function(a,b) {
         if (a.props.datetime === b.props.datetime) {
           if (!a.props.hasOwnProperty("amount")) {
@@ -421,7 +463,8 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
           ),
           React.DOM.tbody(
             {},
-            expenses
+            expenses,
+            TotalRow({expenses:this.props.expenses})
           )
         ));
     }
