@@ -33,6 +33,18 @@ define(function (){
         },
         error: error
       });
+    },
+    update: function(location, datetime, amount, description, comment, success, error) {
+      $.ajax({
+        type:'PUT',
+        url: location,
+        contentType: 'application/vnd.expensapp.expense.v1+json',
+        data: JSON.stringify({datetime: datetime, amount: amount, description: description, comment: comment}),
+        success: function(data, status, request) {
+          success({location:location, datetime:datetime, amount: amount, description: description, comment: comment});
+        },
+        error: error
+      });
     }
   };
 });

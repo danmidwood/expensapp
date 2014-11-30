@@ -92,6 +92,13 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
     updateExpenses: function(expenses){
       this.setState({expenses: expenses});
     },
+    replaceExpense: function(expense){
+      var newExpenses = this.state.expenses.filter(function(value) {
+        return value.location !== expense.location;
+      });
+      newExpenses.push(expense);
+      this.setState({expenses: newExpenses});
+    },
     onExpensesFailedToLoad: function() {
     },
     logout: function() {
@@ -105,7 +112,8 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
                       React.DOM.p({}, "Hi " + this.props.username + "! You are logged in. "),
                       React.DOM.a({onClick:this.logout, href:'#'}, "Logout"),
                       DatePicker({date:this.state.date, moveWeek:this.moveWeek}),
-                      ExpensesTable({date:this.state.date, expenses:this.state.expenses, updateExpenses: this.updateExpenses})
+                      ExpensesTable({date:this.state.date, expenses:this.state.expenses,
+                                     updateExpenses: this.updateExpenses, replaceExpense:this.replaceExpense})
                      ));
     }
   });
@@ -279,7 +287,7 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
             return true;
           }.bind(this)})),
         React.DOM.td({className: "save"},
-                    React.DOM.button({onClick:this.save}, "Save")));
+                    React.DOM.button({onClick:this.save})));
 
     }
   });
@@ -295,17 +303,48 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
     render: function() {
       return React.DOM.tr(
         {},
-        React.DOM.td({className: "time"}, new Date(this.props.datetime).getHours() + ':' + new Date(this.props.datetime).getMinutes()),
-        React.DOM.td({className: "amount"}, this.props.amount.toFixed(2)),
-        React.DOM.td({className: "description"}, this.props.description),
-        React.DOM.td({className: "comment"}, this.props.comment),
+        React.DOM.td({className: "time", contentEditable:true, onBlur:function(e) {
+          var timeStr = e.currentTarget.textContent;
+          var hhMm = timeStr.split(":");
+          var newTime = new Date(this.props.datetime);
+          newTime.setHours(hhMm[0]);
+          if (hhMm.length > 1) {
+            newTime.setMinutes(hhMm[1]);
+          }
+          if (!isNaN(newTime.getTime())) {
+            this.props.onUpdate({datetime:newTime.getTime()});
+            return true;
+          } else {
+            this.setState({error:true});
+            e.currentTarget.textContent = "invalid";
+            return true;
+          }
+        }.bind(this)}, new Date(this.props.datetime).getHours() + ':' + new Date(this.props.datetime).getMinutes()),
+        React.DOM.td({className: "amount", contentEditable:true, onBlur:function(e) {
+          var amountStr = e.currentTarget.textContent;
+          var amountFloat = parseFloat(amountStr);
+          if (!isNaN(amountFloat)) {
+            this.props.onUpdate({amount:amountFloat});
+            return true;
+          } else {
+            return false;
+          }
+        }.bind(this)}, this.props.amount.toFixed(2)),
+        React.DOM.td({className: "description", contentEditable:true, onBlur:function(e) {
+          this.props.onUpdate({description:e.target.textContent});
+          return true;
+        }.bind(this)}, this.props.description),
+        React.DOM.td({className: "comment", contentEditable:true, onBlur:function(e) {
+          this.props.onUpdate({comment:e.target.textContent});
+          return true;
+        }.bind(this)}, this.props.comment),
         React.DOM.td({className: "update" + (this.state.deleting ? " deleting" : "") + (this.state.error ? " error" : "")},
                     ExpenseDeleteCell({location: this.props.location, onDelete:this.props.onDelete})));
     }
   });
 
   var ExpensesTable = React.createClass({
-    // props {expenses:, updateExpenses, date }
+    // props {expenses:, updateExpenses, replaceExpense date }
     dummy: [],
     getInitialState: function() {
       return {adding:undefined};
@@ -345,6 +384,14 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
           var newExps = this.props.expenses;
           var removes = this.props.expenses.splice(idx,1);
           this.props.updateExpenses(newExps);
+        }.bind(this);
+        x.props.onUpdate = function(changedData) {
+          var currentData = {datetime: x.props.datetime, description: x.props.description,
+                       amount: x.props.amount, comment: x.props.comment};
+          var newData = $.extend({}, currentData, changedData);
+          Expense.update(x.props.location, newData.datetime, newData.amount, newData.description, newData.comment, function(exp){
+            this.props.replaceExpense(exp);
+          }.bind(this), alert);
         }.bind(this);
         return x;
       }.bind(this));
