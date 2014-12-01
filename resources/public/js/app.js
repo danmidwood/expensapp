@@ -540,8 +540,10 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
             return 1;
           } else if (a.props.editing) {
             return -1;
+          } else if (a.props.amount !== b.props.amount)  {
+            return a.props.amount - b.props.amount;
           } else {
-            return 1;
+            return b.props.location.localeCompare(a.props.location);
           }
         }
         else {
