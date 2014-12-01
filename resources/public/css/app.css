@@ -123,3 +123,9 @@ tbody > tr > th {
     border-bottom: 1px solid #d4d4d5;
     border-left: none;
 }
+
+
+td > textarea {
+    width: 100%;
+    height: 5em;
+}

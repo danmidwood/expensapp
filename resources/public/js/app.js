@@ -328,14 +328,20 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
             }.bind(this)})),
         React.DOM.td(
           {className: "description"},
-          React.DOM.input({value:this.state.description, onChange:function(e) {
-            this.setState({description:e.target.value});
+          React.DOM.textarea({value:this.state.description, onChange:function(e) {
+            var newVal = e.target.value;
+            if (newVal.length <= 100) {
+              this.setState({description:newVal});
+            }
             return true;
           }.bind(this)})),
         React.DOM.td(
           {className: "comment"},
-          React.DOM.input({value:this.state.comment, onChange:function(e) {
-            this.setState({comment:e.target.value});
+          React.DOM.textarea({value:this.state.comment, onChange:function(e) {
+            var newVal = e.target.value;
+            if (newVal.length <= 100) {
+              this.setState({comment:newVal});
+            }
             return true;
           }.bind(this)})),
         React.DOM.td({className: "action"},
@@ -344,51 +350,123 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
     }
   });
 
-
+  var renderTime = function(datetime) {
+    var pad = function(num) {
+      var s = num+"";
+      while (s.length < 2) s = "0" + s;
+      return s;
+    };
+    return pad(datetime.getHours()) + ':' + pad(datetime.getMinutes());
+  };
 
 
   var Expense_ = React.createClass({
     // props {onDelete, onUpdate}
     getInitialState: function() {
-      return {deleting: false, error: false};
+      return {deleting: false,
+              error: false,
+              description:this.props.description,
+              descriptionError: false,
+              comment: this.props.comment,
+              commentError: false,
+              amountError: false,
+              datetimeError: false
+             };
     },
     render: function() {
       return React.DOM.tr(
         {},
-        React.DOM.td({className: "time", contentEditable:true, onBlur:function(e) {
-          var timeStr = e.currentTarget.textContent;
-          var hhMm = timeStr.split(":");
-          var newTime = new Date(this.props.datetime);
-          newTime.setHours(hhMm[0]);
-          newTime.setMinutes(hhMm.length > 1 ? hhMm[1] : 0);
-          if (!isNaN(newTime.getTime())) {
-            this.props.onUpdate({datetime:newTime.getTime()});
+        React.DOM.td(
+          {className: "datetime" + (this.state.datetimeError ? " error" : ""),
+           contentEditable:true, onBlur:function(e) {
+             if (!this.state.datetimeError) {
+               var timeStr = e.currentTarget.textContent;
+               var hhMm = timeStr.split(":");
+               var newTime = new Date(this.props.datetime);
+               newTime.setHours(hhMm[0]);
+               newTime.setMinutes(hhMm.length > 1 ? hhMm[1] : 0);
+               if (!isNaN(newTime.getTime()) && newTime.getDate() === new Date(this.props.datetime).getDate()) {
+                 if (newTime.getTime() === this.props.datetime) {
+                   // a hack. If the time is edited without changing the value (e.g. 10:20 -> 10:2) then there
+                   // is no rerendering. So this here will automatically apply it.
+                   e.target.textContent = renderTime(new Date(this.props.datetime));
+                 } else {
+                   this.props.onUpdate({datetime:newTime.getTime()});
+                 }
+               }
+             }
+             return true;
+          }.bind(this),
+           onKeyUp:function(e) {
+             var timeStr = e.currentTarget.textContent;
+             var hhMm = timeStr.split(":");
+             var newTime = new Date(this.props.datetime);
+             newTime.setHours(hhMm[0]);
+             newTime.setMinutes(hhMm.length > 1 ? hhMm[1] : 0);
+             if (!isNaN(newTime.getTime()) && newTime.getDate() === new Date(this.props.datetime).getDate()) {
+               this.setState({datetimeError:false});
+             } else {
+               this.setState({datetimeError:true});
+             }
+             return true;
+           }.bind(this)
+          }, renderTime(new Date(this.props.datetime))),
+        React.DOM.td(
+          {className: "amount" + (this.state.amountError ? " error" : ""),
+           contentEditable:true, onBlur:function(e) {
+             if (!this.state.amountError) {
+               var amountStr = e.target.textContent;
+               var amountFloat = parseFloat(amountStr);
+               var newState = {amount:parseFloat(amountFloat.toFixed(2))};
+               this.props.onUpdate(newState);
+               e.target.textContent = renderMoney(newState.amount);
+             }
+          }.bind(this),
+           onKeyUp:function(e) {
+             var amountStr = e.target.textContent;
+             var amountFloat = parseFloat(amountStr);
+             if (!isNaN(amountFloat) && amountFloat <= 9999.99 && amountFloat >= -9999.99) {
+               this.setState({amountError:false});
+               return true;
+             } else {
+               this.setState({amountError:true});
+               return false;
+             }
+
+           }.bind(this)
+          }, renderMoney(this.props.amount)),
+        React.DOM.td(
+          {className: "description" + (this.state.descriptionError ? " error" : ""),
+           value: this.state.description,
+           contentEditable:true, onBlur:function(e) {
+             this.props.onUpdate({description:this.state.description});
+             return true;
+           }.bind(this),
+           onKeyUp:function(e) {
+             var newVal = e.target.textContent;
+             if (newVal.length <= 100) {
+               this.setState({description:newVal, descriptionError:false});
+             } else {
+               this.setState({descriptionError:true});
+             }
+             return true;
+           }.bind(this)}, this.state.description),
+        React.DOM.td(
+          {className: "comment" + (this.state.commentError ? " error" : ""),
+           contentEditable:true, onBlur:function(e) {
+            this.props.onUpdate({comment:this.state.comment});
             return true;
-          } else {
-            this.setState({error:true});
-            e.currentTarget.textContent = "invalid";
-            return true;
-          }
-        }.bind(this)}, new Date(this.props.datetime).getHours() + ':' + new Date(this.props.datetime).getMinutes()),
-        React.DOM.td({className: "amount", contentEditable:true, onBlur:function(e) {
-          var amountStr = e.currentTarget.textContent;
-          var amountFloat = parseFloat(amountStr);
-          if (!isNaN(amountFloat)) {
-            e.currentTarget.textContent = renderMoney(amountFloat);
-            this.props.onUpdate({amount:parseFloat(amountFloat.toPrecision(2))});
-            return true;
-          } else {
-            return false;
-          }
-        }.bind(this)}, renderMoney(this.props.amount)),
-        React.DOM.td({className: "description", contentEditable:true, onBlur:function(e) {
-          this.props.onUpdate({description:e.target.textContent});
-          return true;
-        }.bind(this)}, this.props.description),
-        React.DOM.td({className: "comment", contentEditable:true, onBlur:function(e) {
-          this.props.onUpdate({comment:e.target.textContent});
-          return true;
-        }.bind(this)}, this.props.comment),
+          }.bind(this),
+           onKeyUp:function(e) {
+             var newVal = e.target.textContent;
+             if (newVal.length <= 100) {
+               this.setState({comment:newVal, commentError:false});
+             } else {
+               this.setState({commentError:true});
+             }
+             return true;
+           }.bind(this)
+          }, this.state.comment),
         React.DOM.td({className: "action" + (this.state.deleting ? " deleting" : "") + (this.state.error ? " error" : "")},
                     ExpenseDeleteCell({location: this.props.location, onDelete:this.props.onDelete})));
     }
