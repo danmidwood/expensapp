@@ -113,9 +113,11 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
 
       return (
         React.DOM.div({className: "twelve wide column loading"},
-                      React.DOM.p({}, "Hi " + this.props.username + "! You are logged in. "),
-                      React.DOM.a({onClick:this.logout, href:'#'}, "Logout"),
-                      DatePicker({date:this.state.date, moveWeek:this.moveWeek}),
+                      React.DOM.div({className:"ui grid"},
+                                    React.DOM.div({className:"welcomeMessage five wide column"},
+                                                  React.DOM.span({}, "Hi " + this.props.username + ", get tracking those expenses. "),
+                                                  React.DOM.a({onClick:this.logout, href:'#'}, "Logout")),
+                                    DatePicker({date:this.state.date, moveWeek:this.moveWeek})),
                       ExpensesTable({date:this.state.date, expenses:this.state.expenses,
                                      updateExpenses: this.updateExpenses, replaceExpense:this.replaceExpense})
                      ));
@@ -128,11 +130,10 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
       var date = this.props.date.getDate();
       var month = this.props.date.getMonth() + 1;
       var year = this.props.date.getFullYear();
-      return React.DOM.div({className: "datepicker ui grid"},
-                           React.DOM.div({className:"column right aligned"},
-                                         React.DOM.a({href:'#',onClick: function() {this.props.moveWeek(-1); return false;}.bind(this)},"<<<"),
-                                         React.DOM.span({}, ' Week commencing: ' + date + '/' + month + '/' + year + ' '),
-                                         React.DOM.a({href:'#',onClick: function() {this.props.moveWeek(1); return false;}.bind(this)},">>>")));
+      return React.DOM.div({className:"datepicker eleven wide column right aligned"},
+                           React.DOM.a({href:'#',onClick: function() {this.props.moveWeek(-1); return false;}.bind(this)},"<<<"),
+                           React.DOM.span({className: "weekCommencing"}, ' Week commencing: ' + date + '/' + month + '/' + year + ' '),
+                           React.DOM.a({href:'#',onClick: function() {this.props.moveWeek(1); return false;}.bind(this)},">>>"));
     }
   });
 
@@ -163,7 +164,7 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
                               return true;
                             }.bind(this)}))),
         React.DOM.th(
-          {className: "delete"}, ""));
+          {className: "action"}, ""));
 
     }
   });
@@ -178,11 +179,11 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
       {total:0, number:0});
 
       return React.DOM.tr(
-        {className:""},
+        {className:"subHeader"},
         React.DOM.th(
           {className: ""}),
         React.DOM.th(
-          {className: "total"}, "Week total: " + totalAmount.total));
+          {className: "total", colSpan: 4}, "Week total: " + totalAmount.total));
 
     }
   });
@@ -213,18 +214,19 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
               },
               {total:0, number:0}
             );
-      return React.DOM.tr({key:day, className:"day"},
-                          React.DOM.td(
+      return React.DOM.tr({key:day, className:"dayRow"},
+                          React.DOM.th(
                             {className: "day", colSpan:1}, day),
-                          React.DOM.td(
-                            {className: "day", colSpan:2}, totalAmount.number > 0 ? "Daily total: " + renderMoney(totalAmount.total) + ", average: " + renderMoney(totalAmount.total / totalAmount.number) : ""),
-                          React.DOM.td(
+                          React.DOM.th(
+                            {className: "dayTotal", colSpan:2}, totalAmount.number > 0 ? "Daily total: " + renderMoney(totalAmount.total) + ", average: " + renderMoney(totalAmount.total / totalAmount.number) : ""),
+                          React.DOM.th(
                             {className: "date right aligned"}, dayOfMonth + ' ' + month + ', ' + year),
-                          React.DOM.td(
-                            {className:"", onClick:function() {
+                          React.DOM.th(
+                            {className:"action"},
+                            React.DOM.a({href:"#", onClick:function() {
                               this.props.add(this.props.datetime);
                               return false;
-                            }.bind(this)}, "[+]"));
+                            }.bind(this)}, "[+]")));
     }
   });
 
@@ -336,7 +338,7 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
             this.setState({comment:e.target.value});
             return true;
           }.bind(this)})),
-        React.DOM.td({className: "save"},
+        React.DOM.td({className: "action"},
                     React.DOM.button({onClick:this.save}, "Save")));
 
     }
@@ -387,7 +389,7 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
           this.props.onUpdate({comment:e.target.textContent});
           return true;
         }.bind(this)}, this.props.comment),
-        React.DOM.td({className: "update" + (this.state.deleting ? " deleting" : "") + (this.state.error ? " error" : "")},
+        React.DOM.td({className: "action" + (this.state.deleting ? " deleting" : "") + (this.state.error ? " error" : "")},
                     ExpenseDeleteCell({location: this.props.location, onDelete:this.props.onDelete})));
     }
   });
@@ -472,6 +474,13 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
       return (
         React.DOM.table(
           {className:"ui compact celled table"},
+          React.DOM.colgroup(
+            {},
+            React.DOM.col({span:1, className:"colTime"}),
+            React.DOM.col({span:1, className:"colAmount"}),
+            React.DOM.col({span:1, className:"colDescription"}),
+            React.DOM.col({span:1, className:"colComment"}),
+            React.DOM.col({span:1, className:"colAction"})),
           React.DOM.thead(
             {},
             ExpensesTableHeader(

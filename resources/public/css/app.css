@@ -92,3 +92,34 @@ body {
 .ui.table tbody tr.day > td {
     border-left: none;
 }
+
+col.colTime {
+    width: 5%;
+}
+col.colAmount {
+    width: 5%;
+}
+col.colDescription {
+    width: 40%;
+}
+col.colComment {
+    width: 40%;
+}
+
+col.colAction{
+    width: 5%
+}
+
+tbody > tr > th {
+    cursor: auto;
+    background: #f0f0f0;
+    text-align: left;
+    color: rgba(0, 0, 0, 0.8);
+    padding: 0.3em 0.8em;
+    vertical-align: middle;
+    font-style: none;
+    font-weight: bold;
+    text-transform: none;
+    border-bottom: 1px solid #d4d4d5;
+    border-left: none;
+}
