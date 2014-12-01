@@ -539,8 +539,10 @@ var x = require(["lib/react/react", "lib/jquery/dist/jquery", "login", "expense"
           } else if (!b.props.hasOwnProperty("amount")) {
             return 1;
           } else if (a.props.editing) {
+            return 1;
+          } else if (a.props.editing) {
             return -1;
-          } else if (a.props.amount !== b.props.amount)  {
+          }else if (a.props.amount !== b.props.amount)  {
             return a.props.amount - b.props.amount;
           } else {
             return b.props.location.localeCompare(a.props.location);
