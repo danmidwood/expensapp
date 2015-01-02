@@ -1,335 +1,62 @@
 # Expensapp
 
-A web app for tracking expenses.
-
 ![App screen](/doc/app_screen.png "App screen")
 
-## Roadmap
+A sample single page web application written in Clojure that demonstrates the
+following.
 
-#### Back end
+* [Ring][1] and [Compojure][2] for RESTful services
+* [Friend][3] for semi-RESTful auth (cookie based) over JSON
+* [Environ][4] for environment variable based configuration
+* [Postgres][5] for data storage and [Yesql][6] to access that data
 
-* [x] Create basic structure
-* [x] Add database
-* [x] REST API Account creation
-* [x] REST API Auth
-* [x] REST API Create
-* [x] REST API Read / fetches seven days from a start date (incl.)
-* [x] REST API Update
-* [x] REST API Delete
+Additionally, the leiningen configuration shows how to use:
 
-#### Front end
+* [Bower][7] and [lein-bower][8] for front end dependencies
+* [s3-wagon-private][9] for pushing maven artifacts to Amazon S3
+* [lein-deploy-app][10] for pushing uberjars to S3
 
-* [x] Add first page, + load css and js
-* [x] Add Account creation
-* [x] Add Login
-* [x] Add login/join page design
-* [x] Create "expenses" view
-* [x] Add new expense
-* [x] Display expenses for current week
-* * [x] Add average display
-* * [x] Add total display
-* [x] Allow the selected week to be changed
-* [x] Delete expense
-* [x] Update an expense
-* [x] Make display print nicely
 
-## API
+I hope this serves as a good template to learn / copy from, but I don't claim to
+know everything. If you see any mistakes, problems, bad things, things that can
+be made better then send me an email, create an issue, send a PR, anything.
+Criticism is always welcome.
 
-### Data Types
+There is some front end javascript included in here react.js and jquery, but
+don't use it an example of good Javascript because in the current state it
+certainly isn't.
 
-#### Auth
+## Application docs
 
-Media Type: `application/vnd.expensapp.auth.v1+json`
+* [Clone, Build, Run the application][11]
+* [API][12]
+* [Database][13]
 
-```javascript
-{
-    user: not-nil,
-    password: optional // client should send, server never will
-}
+
+## Development
+
+Follow the instructions in the [Clone, Build, Run][11] doc to set up the database.
+
+Add the environment variables to your leiningen profile where [lein-environ][4]
+can pull them and set them up for a leiningen process automatically.
+
+It will look something like
+
+```clojure
+{:user
+ {:env {:expensapp-dbhost "localhost"
+        :expensapp-dbport "5432"
+        :expensapp-dbname "expensapp"
+        :expensapp-dbuser "dan"}}}
 ```
 
-#### Expense
-
-Media Type: `application/vnd.expensapp.expense.v1+json`
-
-```
-{
-    datetime: not-nil,
-    description: not-nil,
-    amount: not-nil, // between range -9999.99 to 9999.99
-    comment:not-nil,
-    location: optional // will be set by the server, not required on POSTs
-}
-```
-
-#### Expenses
-
-Media Type: `application/vnd.expensapp.expenses.v1+json`
-
-Expenses are a collection of `Expense` objects.
-
-```javascript
-[
-    { expense_1 },
-    { expense_2 },
-    ...
-    { expense_n}
-]
-```
-
-Contract:
-- No expenses will be represented by an empty array
-- The array will not be ordered.
-- The latest expense date will be no more than one week after the earliest
-
-### Services
-
-#### Account Create
-
-verb: `POST`
-path: `/account`
-request type: `Auth`
-
-##### Responses
-###### Success
-response status: HTTP 204
-response type: Nothing
-###### Username in use
-response status: HTTP 409
-response type: Nothing
-###### Malformed client request
-response status: Anything in the 4xx range
-###### Server error
-response status: Anything in the 5xx range
-
-
-Note: This is only account creation, to log in a separate request should be sent
-as described by Login below.
-
-
-#### Login
-
-verb: `POST`
-path: `/session`
-request type: `Auth`
-
-
-##### Responses
-###### Success
-response status: HTTP 204
-response type: Nothing + a session cookie
-
-The session cookie should be sent with all future requests.
-
-DAN: Do some research first into this. The assumption is that returning a cookie
-will automatically add it to the future requests, but this isn't verified yet.
-###### Credentials invalid
-response status: HTTP 401
-response type: Nothing
-###### Malformed client request
-response status: Anything in the 4xx range
-###### Server error
-response status: Anything in the 5xx range
-
-#### Logout
-
-verb: `DELETE`
-path: `/session`
-request type: Nothing
-
-
-##### Responses
-###### Success
-Success will be sent when the client is logged out, this includes if they were
-not logged in to begin with.
-
-response status: HTTP 204
-response type: Nothing
-###### Malformed client request
-response status: Anything in the 4xx range
-###### Server error
-response status: Anything in the 5xx range
-
-#### Get logged in username
-
-verb: `GET`
-path: `/session`
-request type: Nothing
-
-
-##### Responses
-###### Success
-response status: HTTP 200
-response type: An `Auth` without a password
-###### Credentials invalid
-response status: HTTP 401
-response type: Nothing
-###### Malformed client request
-response status: Anything in the 4xx range
-###### Server error
-response status: Anything in the 5xx range
-
-
-#### Create an Expense
-
-verb: `POST`
-path: `/expense`
-request type: `Expense` (Location not required and will be ignored if given)
-
-##### Responses
-###### Success
-response status: HTTP 204
-response type: Nothing
-response header: Location of the resource, this will be a http path from the
-  root including a unique ID
-###### Credentials invalid
-response status: HTTP 401
-response type: Nothing
-###### Malformed client request
-response status: Anything in the 4xx range
-###### Server error
-response status: Anything in the 5xx range
-
-
-#### Read Expenses between dates
-verb: `GET`
-path: `/expense`
-request type: Nothing
-query-param: `week_beginning` - A date without time, should be a Monday
-
-##### Response
-###### Success
-response status: HTTP 200
-response type: `Expenses`
-###### Invalid `week_beginning`
-response status: HTTP 400
-response type: Nothing
-###### Credentials invalid
-response status: HTTP 401
-response type: Nothing
-###### Malformed client request
-response status: Anything in the 4xx range
-###### Server error
-response status: Anything in the 5xx range
-
-#### Delete an Expense
-verb: `DELETE`
-path: taken from an `Expense` representations's `Location` field
-request type: Nothing
-
-##### Response
-###### Success
-response status: HTTP 204
-response type: Nothing
-###### Expense doesn't exist
-response status: HTTP 404
-response type: Nothing
-###### Credentials invalid
-response status: HTTP 401
-response type: Nothing
-###### Malformed client request
-response status: Anything in the 4xx range
-###### Server error
-response status: Anything in the 5xx range
-
-Note: A success response is confirmation that an expense does not exist. If the
-expense did not exist prior to the DELETE call then a success will still be
-returned.
-
-
-#### Update an Expense
-
-verb: `PUT`
-path: taken from an `Expense` representations's `Location` field
-request type: `Expense` (Location not required and will be ignored if given)
-
-##### Responses
-###### Success
-response status: HTTP 204
-response type: Nothing
-###### Credentials invalid
-response status: HTTP 401
-response type: Nothing
-###### Malformed client request
-response status: Anything in the 4xx range
-###### Server error
-response status: Anything in the 5xx range
-
-
-## Database
-
-### User Table
-
-| id | username | password |
-
-* `id` is a UUID and is the primary key
-* `username` is a varchar with length 100
-* `password` is character string of length 60, encrypted with bcrypt
-
-### Expenses
-
-| id | user_id | datetime | description | amount | comment
-
-With constraints
-* `id` is a UUID and is the primary key
-* `user_id` is a UUID and a foreign key of the user table's id
-* `datetime` is without timezone
-* `amount` is a a numeric with precision 6 and scale 2 (i.e. maxes out at 9999.99)
-* `description` and `comment` will both be varchars, limit 100
-
-
-## Using Expensapp
-
-### Prerequisites
-
-You will need [Leiningen][1] 1.7.0 or above installed.
-
-And the latest [node][2] for web dependencies (via npm)
-
-[1]: https://github.com/technomancy/leiningen
-[2]: http://nodejs.org/download/
-
-### Setting up the database
-
-To set up the database, run the scripts in the `./sql_migrations` folder.
-
-The script `builddb.sh` will run all of them automatically.
-
-```sh
-cd sql_migrations
-./builddb.sh
-```
-
-### Starting
-
-Before running the database credentials need to be put into environment
-variables, those that need to be populated are:
-
-* EXPENSAPP_HTTP_PORT
-* EXPENSAPP_DBHOST
-* EXPENSAPP_DBPORT
-* EXPENSAPP_DBNAME
-* EXPENSAPP_DBUSER
-* EXPENSAPP_DBPASS
 
 To start a web server for the application, run:
 
     lein run
 
-### Building
 
-To build an executable jar, run:
-
-    lein uberjar
-
-This will create a jar in the target directory named with the format `expensapp-$version-SNAPSHOT-standalone.jar`
-
-And this can be run with
-
-    java -jar target/expensapp-$version-SNAPSHOT-standalone.jar
-
-The current $version is `0.1.0`
-
+Or connect / start a repl and run `(go)` in the user namespace.
 
 ### Publishing
 
@@ -368,22 +95,24 @@ And to release and do both:
 
 
 
-### Testing
-
-A [Postman][3] collection containing pre-setup requests is included in the root
-of this project. Import it into Postman to try them out.
-
-[3]: http://www.getpostman.com/
-
-## Change Log
-
-* Version 0.1.0-SNAPSHOT
-
 ## Copyright and License
 
 Copyright © 2014 Daniel Midwood
 
 Licensed under the MIT License, except:
-* clock-bg.jpg that is licensed under CC0 by [Grasisography][4]
+* clock-bg.jpg that is licensed under CC0 by [Grasisography][14]
 
-[4] http://www.gratisography.com/
+[1]: https://github.com/ring-clojure/ring
+[2]: https://github.com/weavejester/compojure
+[3]: https://github.com/cemerick/friend
+[4]: https://github.com/weavejester/environ
+[5]: http://www.postgresql.org/
+[6]: https://github.com/krisajenkins/yesql
+[7]: http://bower.io/
+[8]: https://github.com/chlorinejs/lein-bower
+[9]: https://github.com/technomancy/s3-wagon-private
+[10]: https://github.com/rplevy/lein-deploy-app
+[11]: https://github.com/danmidwood/expensapp/blob/master/doc/cbr.md
+[12]: https://github.com/danmidwood/expensapp/blob/master/doc/api.md
+[13]: https://github.com/danmidwood/expensapp/blob/master/doc/db.md
+[14]: http://www.gratisography.com/
